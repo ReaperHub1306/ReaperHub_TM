@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local CoreGui = game:GetService("CoreGui")
 
--- BẤM LẠI LẦN 2 SẼ TẮT (TOGGLE & CLEAN MEMORY)
+-- TOGGLE & CLEAN MEMORY
 if CoreGui:FindFirstChild("ChestTrackerGui") then
     _G.ChestStatRunning = false
     CoreGui.ChestTrackerGui:Destroy()
@@ -11,18 +11,19 @@ end
 
 _G.ChestStatRunning = true
 
--- Khởi tạo ScreenGui đưa vào CoreGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ChestTrackerGui"
-screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
 screenGui.Parent = CoreGui
 
--- Khởi tạo Frame chứa danh sách (nằm dưới thanh máu góc trái)
+-- Frame chứa danh sách (Đã thêm Draggable để kéo thả tự do)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 200, 0, 70)
-mainFrame.Position = UDim2.new(0.02, 0, 0.16, 0)
+mainFrame.Position = UDim2.new(0.02, 0, 0.28, 0) -- Dời xuống dưới thanh HP
 mainFrame.BackgroundTransparency = 1
+mainFrame.Active = true
+mainFrame.Draggable = true -- Cho phép kéo thả vị trí tùy ý
 mainFrame.Parent = screenGui
 
 local listLayout = Instance.new("UIListLayout")
@@ -52,12 +53,10 @@ local function createChestLabel(name, layoutOrder, textColor, strokeColor)
     return label
 end
 
--- Tạo 3 Label hiển thị Rương
 local chestLabel = createChestLabel("ChestLabel", 1, Color3.fromRGB(139, 69, 19), Color3.fromRGB(255, 255, 0))
 local darkChestLabel = createChestLabel("DarkChestLabel", 2, Color3.fromRGB(0, 0, 0), Color3.fromRGB(160, 32, 240))
 local lightChestLabel = createChestLabel("LightChestLabel", 3, Color3.fromRGB(255, 215, 0), Color3.fromRGB(255, 255, 255))
 
--- Hàm đếm rương trong Workspace
 local function updateChestCount()
     local folder = Workspace:FindFirstChild("ChestFolderThing")
     
@@ -88,7 +87,6 @@ local function updateChestCount()
     lightChestLabel.Text = "Light Chest: " .. lightChestCount
 end
 
--- Vòng lặp đếm theo luồng task.spawn
 task.spawn(function()
     while _G.ChestStatRunning and screenGui and screenGui.Parent do
         updateChestCount()
