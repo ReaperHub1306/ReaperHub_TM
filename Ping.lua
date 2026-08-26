@@ -3,7 +3,7 @@ local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local localPlayer = Players.LocalPlayer
 
--- Nếu đã bật rồi -> Chạy lại sẽ TẮT và dọn dẹp bộ nhớ
+-- Nếu đã bật rồi -> Bấm lại sẽ TẮT (Toggle)
 if CoreGui:FindFirstChild("StandalonePingGui") then
     if _G.PingScriptConnection then
         _G.PingScriptConnection:Disconnect()
@@ -13,29 +13,26 @@ if CoreGui:FindFirstChild("StandalonePingGui") then
     return
 end
 
--- BẬT GUI PING
+-- Khởi tạo ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "StandalonePingGui"
+screenGui.IgnoreGuiInset = true
 screenGui.Parent = CoreGui
 
+-- TextLabel chuẩn vị trí, font và viền chữ đen như script gốc của bạn
 local textLabel = Instance.new("TextLabel")
-textLabel.Size = UDim2.new(0, 130, 0, 32)
-textLabel.Position = UDim2.new(0.5, -65, 0, 10)
-textLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-textLabel.BackgroundTransparency = 0.3
+textLabel.Name = "PingDisplay"
+textLabel.Size = UDim2.new(0, 250, 0, 30)
+textLabel.Position = UDim2.new(0.35, 0, 0, 16)
+textLabel.BackgroundTransparency = 1
 textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-textLabel.Font = Enum.Font.GothamBold
-textLabel.TextSize = 13
+textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+textLabel.TextStrokeTransparency = 0
+textLabel.Font = Enum.Font.SourceSansBold
+textLabel.TextSize = 20
+textLabel.TextXAlignment = Enum.TextXAlignment.Left
+textLabel.TextYAlignment = Enum.TextYAlignment.Top
 textLabel.Parent = screenGui
-
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 6)
-corner.Parent = textLabel
-
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(60, 60, 60)
-stroke.Thickness = 1
-stroke.Parent = textLabel
 
 -- Vòng lặp cập nhật Ping
 _G.PingScriptConnection = RunService.RenderStepped:Connect(function()
@@ -58,5 +55,5 @@ _G.PingScriptConnection = RunService.RenderStepped:Connect(function()
         pingIcon = "🟠"
     end
 
-    textLabel.Text = string.format("%s Ping: %d ms", pingIcon, pingValue)
+    textLabel.Text = string.format("%s Ping : %d ms", pingIcon, pingValue)
 end)
