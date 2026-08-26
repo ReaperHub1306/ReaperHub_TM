@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local CoreGui = game:GetService("CoreGui")
 
--- TOGGLE & CLEAN MEMORY
+-- TOGGLE & DỌN BỘ NHỚ
 if CoreGui:FindFirstChild("ChestTrackerGui") then
     _G.ChestStatRunning = false
     CoreGui.ChestTrackerGui:Destroy()
@@ -14,16 +14,16 @@ _G.ChestStatRunning = true
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ChestTrackerGui"
 screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = false -- Khóa offset để chuẩn vị trí như PlayerGui
 screenGui.Parent = CoreGui
 
--- Frame chứa danh sách (Đã thêm Draggable để kéo thả tự do)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 200, 0, 70)
-mainFrame.Position = UDim2.new(0.02, 0, 0.28, 0) -- Dời xuống dưới thanh HP
+mainFrame.Position = UDim2.new(0.02, 0, 0.16, 0) -- Tọa độ gốc chuẩn của bạn
 mainFrame.BackgroundTransparency = 1
 mainFrame.Active = true
-mainFrame.Draggable = true -- Cho phép kéo thả vị trí tùy ý
+mainFrame.Draggable = true
 mainFrame.Parent = screenGui
 
 local listLayout = Instance.new("UIListLayout")
