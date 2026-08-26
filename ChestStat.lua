@@ -14,16 +14,17 @@ _G.ChestStatRunning = true
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ChestTrackerGui"
 screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = false -- Khóa offset để chuẩn vị trí như PlayerGui
+screenGui.IgnoreGuiInset = false
 screenGui.Parent = CoreGui
 
+-- Khung chứa danh sách (Đã tắt kéo thả, giữ cố định vị trí)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 200, 0, 70)
-mainFrame.Position = UDim2.new(0.02, 0, 0.16, 0) -- Tọa độ gốc chuẩn của bạn
+mainFrame.Position = UDim2.new(0.02, 0, 0.16, 0) -- Vị trí cố định chuẩn
 mainFrame.BackgroundTransparency = 1
-mainFrame.Active = true
-mainFrame.Draggable = true
+mainFrame.Active = false
+mainFrame.Draggable = false -- Tắt tính năng kéo thả
 mainFrame.Parent = screenGui
 
 local listLayout = Instance.new("UIListLayout")
