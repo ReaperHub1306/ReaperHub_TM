@@ -25,16 +25,16 @@ ScreenGui.Name = "ItemScannerGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
--- Nút bật/tắt hình chữ nhật ("Items Finder")
+-- Nút bật/tắt hình chữ nhật ("Items Finder" - Đã thu ngắn và về vị trí cũ)
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "ToggleBtn"
-ToggleBtn.Size = UDim2.new(0, 110, 0, 32)
+ToggleBtn.Size = UDim2.new(0, 85, 0, 30)
 ToggleBtn.Position = UDim2.new(0.02, 0, 0.4, 0)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 ToggleBtn.Text = "Items Finder"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 13
+ToggleBtn.TextSize = 11
 ToggleBtn.AutoButtonColor = true
 ToggleBtn.Parent = ScreenGui
 
@@ -290,7 +290,7 @@ local function PerformSearch()
                 PlayerLabel.Font = Enum.Font.GothamMedium
                 PlayerLabel.TextSize = 13
                 PlayerLabel.TextXAlignment = Enum.TextXAlignment.Left
-                PlayerLabel.Text = tostring(listIndex) .. ". " .. player.Name + " x" .. tostring(itemCount) or tostring(listIndex) .. ". " .. player.Name .. " x" .. tostring(itemCount)
+                PlayerLabel.Text = tostring(listIndex) .. ". " .. player.Name .. " x" .. tostring(itemCount)
                 PlayerLabel.Parent = ScrollFrame
                 
                 listIndex = listIndex + 1
