@@ -25,13 +25,13 @@ ScreenGui.Name = "ItemScannerGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
--- Nút Thu gọn / Mở rộng (VỊ TRÍ CỦA BẠN + PHONG CÁCH NÂNG CẤP XỊN)
+-- Nút Thu gọn / Mở rộng (MỚI VÀO TRẠNG THÁI DẤU "+")
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "ToggleBtn"
 ToggleBtn.Size = UDim2.new(0, 42, 0, 22)
 ToggleBtn.Position = UDim2.new(0.8, 0, 0.05, -60) -- Vị trí chuẩn gốc của bạn
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-ToggleBtn.Text = "-"
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+ToggleBtn.Text = "+"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.Font = Enum.Font.GothamBold
 ToggleBtn.TextSize = 16
@@ -48,7 +48,7 @@ ToggleStroke.Thickness = 1.2
 ToggleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 ToggleStroke.Parent = ToggleBtn
 
--- Khung Main (Giao diện Bo góc Modern, Viền trắng xịn)
+-- Khung Main (MỚI BẬT LÊN SẼ TỰ ĐỘNG THU GỌN / ẨN ĐI)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 440, 0, 260)
@@ -56,6 +56,7 @@ MainFrame.Position = UDim2.new(0.5, -220, 0.5, -130)
 MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 MainFrame.Active = true
 MainFrame.Draggable = true
+MainFrame.Visible = false -- Bắt đầu ở trạng thái ẩn/thu gọn
 MainFrame.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
