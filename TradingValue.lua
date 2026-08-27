@@ -271,7 +271,7 @@ local function getSimilarity(s1, s2)
     return 1 - (dist / maxLen)
 end
 
--- 5. Hàm lấy Value thông minh (Multi-Stage Search)
+-- 5. Hàm lấy Value thông minh
 local function getItemValue(item)
     local namesToTest = { item.Name }
 
@@ -352,6 +352,28 @@ if not screenGui.Parent then
     screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 end
 
+-- Nút ON/OFF (ReaperHub Style) - ĐÃ BỔ SUNG LẠI Ở ĐÂY
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 50, 0, 24)
+toggleBtn.Position = UDim2.new(1, -170, 0, -20)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+toggleBtn.Text = "ON"
+toggleBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 13
+toggleBtn.AutoButtonColor = true
+toggleBtn.Parent = screenGui
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 4)
+btnCorner.Parent = toggleBtn
+
+local btnStroke = Instance.new("UIStroke")
+btnStroke.Color = Color3.fromRGB(255, 255, 255)
+btnStroke.Thickness = 1.2
+btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+btnStroke.Parent = toggleBtn
+
 -- Khung UI chính (ReaperHub Theme)
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 160, 0, 90)
@@ -401,6 +423,15 @@ createCell(UDim2.new(0.52, 0, 0.06, 0), UDim2.new(0.44, 0, 0.32, 0), "other", tr
 
 local youValue = createCell(UDim2.new(0.04, 0, 0.42, 0), UDim2.new(0.44, 0, 0.52, 0), "Nothing", false)
 local otherValue = createCell(UDim2.new(0.52, 0, 0.42, 0), UDim2.new(0.44, 0, 0.52, 0), "Nothing", false)
+
+-- Xử lý ẩn/hiện bảng khi bấm nút ON/OFF
+local isVisible = true
+toggleBtn.MouseButton1Click:Connect(function()
+    isVisible = not isVisible
+    mainFrame.Visible = isVisible
+    toggleBtn.Text = isVisible and "ON" or "OFF"
+    toggleBtn.BackgroundColor3 = isVisible and Color3.fromRGB(28, 28, 28) or Color3.fromRGB(45, 45, 45)
+end)
 
 -- 7. Cập nhật liên tục & So sánh tỷ lệ
 task.spawn(function()
