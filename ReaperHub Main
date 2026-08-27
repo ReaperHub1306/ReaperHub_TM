@@ -1,0 +1,422 @@
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- Xóa GUI cũ nếu đã tồn tại
+if CoreGui:FindFirstChild("ReaperHub_GUI") then
+    CoreGui.ReaperHub_GUI:Destroy()
+end
+
+-- ==========================================
+-- TẠO SCREEN GUI CHÍNH
+-- ==========================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ReaperHub_GUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
+
+-- ==========================================
+-- BẢNG LƯU CACHE SCRIPT (CHỐNG KHỰNG / GIẢM ĐỘ TRỄ)
+-- ==========================================
+local ScriptCache = {}
+
+-- ==========================================
+-- 1. NÚT BẬT TẮT (Chữ R tròn)
+-- ==========================================
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(0, 45, 0, 45)
+ToggleBtn.Position = UDim2.new(0, 20, 0.55, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+ToggleBtn.Text = "R"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextSize = 18
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.AutoButtonColor = true
+ToggleBtn.Parent = ScreenGui
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(1, 0)
+ToggleCorner.Parent = ToggleBtn
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Color = Color3.fromRGB(255, 255, 255)
+ToggleStroke.Thickness = 1.5
+ToggleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+ToggleStroke.Parent = ToggleBtn
+
+-- ==========================================
+-- 2. KHUNG MAIN
+-- ==========================================
+local DefaultPos = UDim2.new(0.5, -260, 0.5, -155)
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 520, 0, 310)
+MainFrame.Position = DefaultPos
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 6)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(255, 255, 255)
+MainStroke.Thickness = 1.5
+MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MainStroke.Parent = MainFrame
+
+-- ==========================================
+-- 3. TIÊU ĐỀ
+-- ==========================================
+local TitleText = Instance.new("TextLabel")
+TitleText.Size = UDim2.new(1, 0, 0, 32)
+TitleText.Position = UDim2.new(0, 0, 0, 0)
+TitleText.BackgroundTransparency = 1
+TitleText.Text = "ReaperHub"
+TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleText.Font = Enum.Font.GothamBold
+TitleText.TextSize = 15
+TitleText.Parent = MainFrame
+
+-- ==========================================
+-- 4. THANH TAB NGANG
+-- ==========================================
+local TabScroll = Instance.new("ScrollingFrame")
+TabScroll.Size = UDim2.new(1, -20, 0, 32)
+TabScroll.Position = UDim2.new(0, 10, 0, 35)
+TabScroll.BackgroundTransparency = 1
+TabScroll.CanvasSize = UDim2.new(0, 580, 0, 0)
+TabScroll.ScrollBarThickness = 0
+TabScroll.ScrollingDirection = Enum.ScrollingDirection.X
+TabScroll.Parent = MainFrame
+
+local TabListLayout = Instance.new("UIListLayout")
+TabListLayout.FillDirection = Enum.FillDirection.Horizontal
+TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabListLayout.Padding = UDim.new(0, 6)
+TabListLayout.Parent = TabScroll
+
+-- ==========================================
+-- 5. KHUNG CHỨA TRANG
+-- ==========================================
+local PagesContainer = Instance.new("Frame")
+PagesContainer.Size = UDim2.new(1, -20, 1, -80)
+PagesContainer.Position = UDim2.new(0, 10, 0, 72)
+PagesContainer.BackgroundTransparency = 1
+PagesContainer.ClipsDescendants = true
+PagesContainer.Parent = MainFrame
+
+local tabs = {}
+local function CreateTab(name, isFirst)
+    local TabBtn = Instance.new("TextButton")
+    TabBtn.Size = UDim2.new(0, 85, 1, 0)
+    TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(45, 45, 45) or Color3.fromRGB(25, 25, 25)
+    TabBtn.Text = name
+    TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)
+    TabBtn.Font = Enum.Font.GothamMedium
+    TabBtn.TextSize = 13
+    TabBtn.Parent = TabScroll
+    
+    local TabCorner = Instance.new("UICorner")
+    TabCorner.CornerRadius = UDim.new(0, 4)
+    TabCorner.Parent = TabBtn
+    
+    local TabStroke = Instance.new("UIStroke")
+    TabStroke.Color = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(60, 60, 60)
+    TabStroke.Thickness = isFirst and 1.5 or 1
+    TabStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    TabStroke.Parent = TabBtn
+    
+    local Page = Instance.new("ScrollingFrame")
+    Page.Size = UDim2.new(1, 0, 1, 0)
+    Page.Position = UDim2.new(0, 0, 0, 0)
+    Page.BackgroundTransparency = 1
+    Page.CanvasSize = UDim2.new(0, 0, 0, 360)
+    Page.ScrollBarThickness = 6
+    Page.ScrollBarImageColor3 = Color3.fromRGB(220, 220, 220)
+    Page.ScrollingDirection = Enum.ScrollingDirection.Y
+    Page.Visible = isFirst
+    Page.Parent = PagesContainer
+    
+    table.insert(tabs, {btn = TabBtn, page = Page, stroke = TabStroke})
+    return Page
+end
+
+-- TẠO CÁC TAB
+local MainPage = CreateTab("Main", true)
+local VisualPage = CreateTab("visual", false)
+local CilentPage = CreateTab("Cilent", false)
+local PvPPage = CreateTab("pvp", false)
+local TradingPage = CreateTab("trading", false)
+local SettingPage = CreateTab("setting", false)
+
+for _, t in ipairs(tabs) do
+    t.btn.Activated:Connect(function()
+        for _, otherT in ipairs(tabs) do
+            otherT.page.Visible = false
+            otherT.btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            otherT.stroke.Color = Color3.fromRGB(60, 60, 60)
+            otherT.stroke.Thickness = 1
+            otherT.btn.TextColor3 = Color3.fromRGB(160, 160, 160)
+        end
+        t.page.Visible = true
+        t.btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        t.stroke.Color = Color3.fromRGB(255, 255, 255)
+        t.stroke.Thickness = 1.5
+        t.btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+end
+
+-- ==========================================
+-- HÀM DÙNG CHUNG ĐỂ TẠO NÚT BẬT/TẮT (TOGGLE)
+-- ==========================================
+local function AddBtn(parentContainer, btnName, rawUrl)
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 36)
+    Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    Container.Parent = parentContainer
+
+    local Corn = Instance.new("UICorner")
+    Corn.CornerRadius = UDim.new(0, 4)
+    Corn.Parent = Container
+
+    local Strk = Instance.new("UIStroke")
+    Strk.Color = Color3.fromRGB(60, 60, 60)
+    Strk.Thickness = 1
+    Strk.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    Strk.Parent = Container
+
+    local TextLbl = Instance.new("TextLabel")
+    TextLbl.Size = UDim2.new(1, -60, 1, 0)
+    TextLbl.Position = UDim2.new(0, 10, 0, 0)
+    TextLbl.BackgroundTransparency = 1
+    TextLbl.Text = btnName
+    TextLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
+    TextLbl.Font = Enum.Font.GothamMedium
+    TextLbl.TextSize = 13
+    TextLbl.TextXAlignment = Enum.TextXAlignment.Left
+    TextLbl.Parent = Container
+
+    local SwitchBtn = Instance.new("TextButton")
+    SwitchBtn.Size = UDim2.new(0, 44, 0, 22)
+    SwitchBtn.Position = UDim2.new(1, -54, 0.5, -11)
+    SwitchBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    SwitchBtn.Text = ""
+    SwitchBtn.AutoButtonColor = false
+    SwitchBtn.Parent = Container
+
+    local SwitchCorn = Instance.new("UICorner")
+    SwitchCorn.CornerRadius = UDim.new(1, 0)
+    SwitchCorn.Parent = SwitchBtn
+
+    local Knob = Instance.new("Frame")
+    Knob.Size = UDim2.new(0, 18, 0, 18)
+    Knob.Position = UDim2.new(0, 2, 0.5, -9)
+    Knob.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
+    Knob.Parent = SwitchBtn
+
+    local KnobCorn = Instance.new("UICorner")
+    KnobCorn.CornerRadius = UDim.new(1, 0)
+    KnobCorn.Parent = Knob
+
+    local isOn = false
+    SwitchBtn.Activated:Connect(function()
+        isOn = not isOn
+        if isOn then
+            SwitchBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+            Knob:TweenPosition(UDim2.new(1, -20, 0.5, -9), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.15, true)
+        else
+            SwitchBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Knob:TweenPosition(UDim2.new(0, 2, 0.5, -9), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.15, true)
+        end
+        
+        -- Thực thi script từ Bộ Nhớ Đệm (ScriptCache)
+        task.spawn(function()
+            if not ScriptCache[rawUrl] then
+                local success, code = pcall(function()
+                    return game:HttpGet(rawUrl .. "?v=" .. tick())
+                end)
+                if success and code then
+                    ScriptCache[rawUrl] = code
+                end
+            end
+            
+            if ScriptCache[rawUrl] then
+                loadstring(ScriptCache[rawUrl])()
+            end
+        end)
+    end)
+end
+
+-- Hàm tạo tiêu đề nhóm (Section Header)
+local function AddSectionHeader(parentContainer, titleText)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 22)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = titleText
+    lbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = parentContainer
+    return lbl
+end
+
+-- ==========================================
+-- 6. NỘI DUNG TRANG "MAIN"
+-- ==========================================
+AddSectionHeader(MainPage, "Information").Position = UDim2.new(0, 0, 0, 5)
+
+local InfoFrame = Instance.new("Frame")
+InfoFrame.Size = UDim2.new(0.5, -5, 0, 120)
+InfoFrame.Position = UDim2.new(0, 0, 0, 32)
+InfoFrame.BackgroundTransparency = 1
+InfoFrame.Parent = MainPage
+
+local InfoLayout = Instance.new("UIListLayout")
+InfoLayout.Padding = UDim.new(0, 8)
+InfoLayout.SortOrder = Enum.SortOrder.LayoutOrder
+InfoLayout.Parent = InfoFrame
+
+local function CreateInfoLabel(text)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 34)
+    lbl.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(240, 240, 240)
+    lbl.Font = Enum.Font.GothamMedium
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local pad = Instance.new("UIPadding")
+    pad.PaddingLeft = UDim.new(0, 10)
+    pad.Parent = lbl
+    
+    local corn = Instance.new("UICorner")
+    corn.CornerRadius = UDim.new(0, 4)
+    corn.Parent = lbl
+    
+    local strk = Instance.new("UIStroke")
+    strk.Color = Color3.fromRGB(60, 60, 60)
+    strk.Thickness = 1
+    strk.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    strk.Parent = lbl
+    
+    lbl.Parent = InfoFrame
+    return lbl
+end
+
+local NameLabel = CreateInfoLabel("Name: " .. player.Name)
+local AgeLabel = CreateInfoLabel("Age: " .. player.AccountAge .. " days")
+local FPSLabel = CreateInfoLabel("FPS: ...")
+
+-- Avatar bên phải
+local RightContainer = Instance.new("Frame")
+RightContainer.Size = UDim2.new(0.5, -15, 0, 120)
+RightContainer.Position = UDim2.new(0.5, 5, 0, 32)
+RightContainer.BackgroundTransparency = 1
+RightContainer.Parent = MainPage
+
+local AvatarFrame = Instance.new("Frame")
+AvatarFrame.Size = UDim2.new(0, 120, 0, 120)
+AvatarFrame.AnchorPoint = Vector2.new(0.5, 0)
+AvatarFrame.Position = UDim2.new(0.5, 0, 0, 0)
+AvatarFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+AvatarFrame.Parent = RightContainer
+
+local AvCorner = Instance.new("UICorner")
+AvCorner.CornerRadius = UDim.new(0, 4)
+AvCorner.Parent = AvatarFrame
+
+local AvStroke = Instance.new("UIStroke")
+AvStroke.Color = Color3.fromRGB(255, 255, 255)
+AvStroke.Thickness = 1.5
+AvStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+AvStroke.Parent = AvatarFrame
+
+local AvatarImage = Instance.new("ImageLabel")
+AvatarImage.Size = UDim2.new(1, -8, 1, -8)
+AvatarImage.Position = UDim2.new(0, 4, 0, 4)
+AvatarImage.BackgroundTransparency = 1
+AvatarImage.Image = "rbxthumb://type=AvatarHeadShot&id=" .. player.UserId .. "&w=420&h=420"
+AvatarImage.Parent = AvatarFrame
+
+-- Mục Stats
+local StatsHeader = AddSectionHeader(MainPage, "Stats")
+StatsHeader.Position = UDim2.new(0, 0, 0, 162)
+
+local MainToggleHolder = Instance.new("Frame")
+MainToggleHolder.Size = UDim2.new(1, 0, 0, 0)
+MainToggleHolder.Position = UDim2.new(0, 0, 0, 188)
+MainToggleHolder.BackgroundTransparency = 1
+MainToggleHolder.Parent = MainPage
+
+local MainToggleLayout = Instance.new("UIListLayout")
+MainToggleLayout.SortOrder = Enum.SortOrder.LayoutOrder
+MainToggleLayout.Padding = UDim.new(0, 6)
+MainToggleLayout.Parent = MainToggleHolder
+
+AddBtn(MainToggleHolder, "Ping stat", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/Ping.lua")
+AddBtn(MainToggleHolder, "Server time", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerTime.lua")
+AddBtn(MainToggleHolder, "Chest stat", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ChestStat.lua")
+
+
+-- ==========================================
+-- 7. NỘI DUNG TRANG "VISUAL"
+-- ==========================================
+local VisualToggleHolder = Instance.new("Frame")
+VisualToggleHolder.Size = UDim2.new(1, 0, 0, 0)
+VisualToggleHolder.Position = UDim2.new(0, 0, 0, 10)
+VisualToggleHolder.BackgroundTransparency = 1
+VisualToggleHolder.Parent = VisualPage
+
+local VisualToggleLayout = Instance.new("UIListLayout")
+VisualToggleLayout.SortOrder = Enum.SortOrder.LayoutOrder
+VisualToggleLayout.Padding = UDim.new(0, 6)
+VisualToggleLayout.Parent = VisualToggleHolder
+
+AddSectionHeader(VisualToggleHolder, "ESP")
+AddBtn(VisualToggleHolder, "ESP Chest", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspChest.lua")
+AddBtn(VisualToggleHolder, "ESP Boss", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspBoss.lua")
+
+
+-- ==========================================
+-- 8. NỘI DUNG TRANG "TRADING" (Items Finder & Trading value)
+-- ==========================================
+local TradingToggleHolder = Instance.new("Frame")
+TradingToggleHolder.Size = UDim2.new(1, 0, 0, 0)
+TradingToggleHolder.Position = UDim2.new(0, 0, 0, 10)
+TradingToggleHolder.BackgroundTransparency = 1
+TradingToggleHolder.Parent = TradingPage
+
+local TradingToggleLayout = Instance.new("UIListLayout")
+TradingToggleLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TradingToggleLayout.Padding = UDim.new(0, 6)
+TradingToggleLayout.Parent = TradingToggleHolder
+
+AddSectionHeader(TradingToggleHolder, "Tools")
+AddBtn(TradingToggleHolder, "Items Finder", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ItemsFinder.lua")
+AddBtn(TradingToggleHolder, "Trading value", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/TradingValue.lua")
+
+
+-- ==========================================
+-- 9. ĐO FPS VÀ XỬ LÝ NÚT THU GỌN "R"
+-- ==========================================
+local sec = 0
+local frames = 0
+RunService.RenderStepped:Connect(function(dt)
+    sec = sec + dt
+    frames = frames + 1
+    if sec >= 1 then
+        FPSLabel.Text = "FPS: " .. frames
+        sec = 0
+        frames = 0
+    end
+end)
+
+ToggleBtn.Activated:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
