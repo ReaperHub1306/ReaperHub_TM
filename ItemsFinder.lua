@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 
--- Cơ chế Bật/Tắt chuẩn ReaperHub (nếu tắt ở Hub sẽ dọn dẹp sạch GUI)
+-- Cơ chế Bật/Tắt chuẩn ReaperHub
 if _G.ItemScannerEnabled then
     _G.ItemScannerEnabled = false
     if CoreGui:FindFirstChild("ItemScannerGUI") then
@@ -18,23 +18,23 @@ if CoreGui:FindFirstChild("ItemScannerGUI") then
 end
 
 -- ==========================================
--- 1. TẠO GIAO DIỆN (ĐỒNG BỘ REAPERHUB)
+-- 1. TẠO GIAO DIỆN HIỆN ĐẠI (UPGRADED REAPERHUB THEME)
 -- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ItemScannerGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
--- Nút bật/tắt hình chữ nhật ("Items Finder" - Đã thu ngắn và về vị trí cũ)
+-- Nút Thu gọn / Mở rộng (VỊ TRÍ CỦA BẠN + PHONG CÁCH NÂNG CẤP XỊN)
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "ToggleBtn"
-ToggleBtn.Size = UDim2.new(0, 85, 0, 30)
-ToggleBtn.Position = UDim2.new(0.02, 0, 0.4, 0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-ToggleBtn.Text = "Items Finder"
+ToggleBtn.Size = UDim2.new(0, 42, 0, 22)
+ToggleBtn.Position = UDim2.new(0.8, 0, 0.05, -60) -- Vị trí chuẩn gốc của bạn
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+ToggleBtn.Text = "-"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 11
+ToggleBtn.TextSize = 16
 ToggleBtn.AutoButtonColor = true
 ToggleBtn.Parent = ScreenGui
 
@@ -44,18 +44,18 @@ ToggleCorner.Parent = ToggleBtn
 
 local ToggleStroke = Instance.new("UIStroke")
 ToggleStroke.Color = Color3.fromRGB(255, 255, 255)
-ToggleStroke.Thickness = 1.5
+ToggleStroke.Thickness = 1.2
+ToggleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 ToggleStroke.Parent = ToggleBtn
 
--- Khung Main (Cố định, ban đầu ẩn đi để không vướng màn hình)
+-- Khung Main (Giao diện Bo góc Modern, Viền trắng xịn)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 440, 0, 260)
 MainFrame.Position = UDim2.new(0.5, -220, 0.5, -130)
 MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 MainFrame.Active = true
-MainFrame.Draggable = false -- Đã cố định vị trí
-MainFrame.Visible = false -- Mới vào trạng thái thu gọn / ẩn
+MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
@@ -68,7 +68,7 @@ MainStroke.Thickness = 1.5
 MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Parent = MainFrame
 
--- Đường kẻ dọc chia đôi tinh tế hơn
+-- Đường kẻ dọc chia đôi hiện đại
 local Divider = Instance.new("Frame")
 Divider.Size = UDim2.new(0, 1, 1, -20)
 Divider.Position = UDim2.new(0.5, 0, 0, 10)
@@ -76,7 +76,7 @@ Divider.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 Divider.BorderSizePixel = 0
 Divider.Parent = MainFrame
 
--- Thanh tìm kiếm (TextBox)
+-- Ô Tìm kiếm (SearchBox Modern)
 local SearchBox = Instance.new("TextBox")
 SearchBox.Name = "SearchBox"
 SearchBox.Size = UDim2.new(0, 195, 0, 34)
@@ -87,7 +87,7 @@ SearchBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
 SearchBox.PlaceholderText = "Search item..."
 SearchBox.Text = ""
 SearchBox.Font = Enum.Font.GothamMedium
-SearchBox.TextSize = 14
+SearchBox.TextSize = 13
 SearchBox.ClearTextOnFocus = false
 SearchBox.Parent = MainFrame
 
@@ -101,7 +101,7 @@ SearchBoxStroke.Thickness = 1
 SearchBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 SearchBoxStroke.Parent = SearchBox
 
--- Hiển thị số lượng Player sở hữu
+-- Hiển thị số lượng Player
 local PlayerCountLabel = Instance.new("TextLabel")
 PlayerCountLabel.Name = "PlayerCountLabel"
 PlayerCountLabel.Size = UDim2.new(0, 95, 0, 26)
@@ -114,7 +114,7 @@ PlayerCountLabel.TextSize = 13
 PlayerCountLabel.TextXAlignment = Enum.TextXAlignment.Left
 PlayerCountLabel.Parent = MainFrame
 
--- Menu Chọn Chế Độ (items / trolls)
+-- Nút Chế độ (ModeBtn)
 local currentMode = "items"
 
 local ModeBtn = Instance.new("TextButton")
@@ -138,6 +138,7 @@ ModeStroke.Thickness = 1
 ModeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 ModeStroke.Parent = ModeBtn
 
+-- Menu Dropdown
 local DropdownFrame = Instance.new("Frame")
 DropdownFrame.Name = "DropdownFrame"
 DropdownFrame.Size = UDim2.new(0, 94, 0, 52)
@@ -192,7 +193,7 @@ SuggestionLayout.CellSize = UDim2.new(0, 92, 0, 36)
 SuggestionLayout.CellPadding = UDim2.new(0, 11, 0, 5)
 SuggestionLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
--- ScrollingFrame danh sách người chơi (Bên phải)
+-- ScrollingFrame Danh sách Người chơi
 local ScrollFrame = Instance.new("ScrollingFrame")
 ScrollFrame.Name = "ScrollFrame"
 ScrollFrame.Size = UDim2.new(0, 205, 0, 236)
@@ -238,7 +239,7 @@ local function PerformSearch()
     end
     
     for _, child in ipairs(SuggestionsFrame:GetChildren()) do
-        if child:IsA("TextButton") then child:Destroy() end
+        if child:IsA("TextButton") or child:IsA("TextLabel") then child:Destroy() end
     end
 
     local rawText = SearchBox.Text
@@ -298,7 +299,6 @@ local function PerformSearch()
         end
     end
 
-    -- Tạo 8 nút gợi ý chuẩn phong cách Hub
     local count = 0
     for _, originalName in pairs(uniqueItemsFound) do
         if count >= 8 then break end
@@ -339,7 +339,7 @@ end
 SearchBox:GetPropertyChangedSignal("Text"):Connect(PerformSearch)
 
 -- ==========================================
--- 4. XỬ LÝ SỰ KIỆN MENU & BẬT TẮT BẢNG SCANNER
+-- 4. XỬ LÝ SỰ KIỆN MENU & BẬT TẮT
 -- ==========================================
 ModeBtn.MouseButton1Click:Connect(function()
     DropdownFrame.Visible = not DropdownFrame.Visible
@@ -367,8 +367,10 @@ end)
 ToggleBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
     if MainFrame.Visible then
-        ToggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        ToggleBtn.Text = "-"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     else
-        ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        ToggleBtn.Text = "+"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     end
 end)
