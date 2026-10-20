@@ -382,6 +382,9 @@ AddSectionHeader(VisualToggleHolder, "ESP")
 AddBtn(VisualToggleHolder, "ESP Chest", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspChest.lua")
 AddBtn(VisualToggleHolder, "ESP Boss", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspBoss.lua")
 
+AddSectionHeader(VisualToggleHolder, "Environment")
+AddBtn(VisualToggleHolder, "Fullbright", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/Fullbright.lua")
+AddBtn(VisualToggleHolder, "Remove Fog", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/RemoveFog.lua")
 
 -- ==========================================
 -- 8. NỘI DUNG TRANG "TRADING" (Items Finder & Trading value)
