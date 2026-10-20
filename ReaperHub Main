@@ -604,13 +604,13 @@ AddBtn(TradingToggleHolder, "Items Finder", "https://raw.githubusercontent.com/R
 AddBtn(TradingToggleHolder, "Trading value", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/TradingValue.lua")
 
 -- ==========================================
--- 9. NỘI DUNG TRANG "SETTING"
+-- 9. NỘI DUNG TRANG "SETTING" (Đã sửa lỗi biến)
 -- ==========================================
 local SettingToggleHolder = Instance.new("Frame")
 SettingToggleHolder.Size = UDim2.new(1, 0, 0, 0)
 SettingToggleHolder.Position = UDim2.new(0, 0, 0, 10)
 SettingToggleHolder.BackgroundTransparency = 1
-SettingToggleHolder.Parent = SettingPage
+SettingToggleHolder.Parent = SettingPage -- Chú ý chữ S viết hoa trùng với biến khởi tạo CreateTab
 
 local SettingToggleLayout = Instance.new("UIListLayout")
 SettingToggleLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -618,6 +618,8 @@ SettingToggleLayout.Padding = UDim.new(0, 6)
 SettingToggleLayout.Parent = SettingToggleHolder
 
 AddSectionHeader(SettingToggleHolder, "Options")
+
+-- Gọi 2 nút trong trang Setting
 AddAutoSaveToggle(SettingToggleHolder)
 AddLanguageDropdown(SettingToggleHolder)
 
