@@ -2,11 +2,11 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
--- ==========================================
--- XỬ LÝ BẬT/TẮT NÚT (TRÁNH TRÙNG LẶP UI)
--- ==========================================
 local guiName = "TradeTrackerGUI"
 
+-- ==========================================
+-- XỬ LÝ BẬT / TẮT (TOGGLE ON/OFF)
+-- ==========================================
 if getgenv().ReaperHub_TradeTracker_Loaded then
     local existingGui = CoreGui:FindFirstChild(guiName) or LocalPlayer.PlayerGui:FindFirstChild(guiName)
     if existingGui then
@@ -17,15 +17,12 @@ end
 
 getgenv().ReaperHub_TradeTracker_Loaded = true
 
--- 1. Tự động xóa bản cũ nếu đã tồn tại
-if CoreGui:FindFirstChild(guiName) then
-    CoreGui:FindFirstChild(guiName):Destroy()
-end
-if LocalPlayer.PlayerGui:FindFirstChild(guiName) then
-    LocalPlayer.PlayerGui:FindFirstChild(guiName):Destroy()
-end
+if CoreGui:FindFirstChild(guiName) then CoreGui[guiName]:Destroy() end
+if LocalPlayer.PlayerGui:FindFirstChild(guiName) then LocalPlayer.PlayerGui[guiName]:Destroy() end
 
--- 2. Bảng Giá Trị (Value Table) - Đã cập nhật mới nhất
+-- ==========================================
+-- BẢNG VALUE MỚI NHẤT (TỪ TIERLIST GOOGLE DOCS)
+-- ==========================================
 local ValueTable = {
     -- SS+ Tier
     ["bob cup"] = 70000,
@@ -33,8 +30,8 @@ local ValueTable = {
     ["soac"] = 50000,
     ["rob cup"] = 38000,
     ["rob"] = 30000,
-    ["equinox:evil"] = 16000,
     ["equinox evil"] = 16000,
+    ["equinox:evil"] = 16000,
     ["equinox"] = 16000,
     ["sunglasses"] = 12000,
 
@@ -42,18 +39,25 @@ local ValueTable = {
     ["reaper essence"] = 8500,
     ["true ruler spirit"] = 6250,
     ["bob"] = 5800,
+    ["hollow trolling:fire"] = 4250,
+    ["hollow trolling fire"] = 4250,
+    ["hollow trolling:flandre"] = 4250,
+    ["hollow trolling flandre"] = 4250,
     ["hollow trolling"] = 4250,
     ["halloween chest"] = 3000,
     ["kindness soul"] = 2700,
+    ["trollge:true potential's"] = 2600,
     ["trollge:true potential"] = 2600,
     ["trollge true potential"] = 2600,
-    ["omega booster"] = 2400,
+    ["trollge true potential's:funny"] = 2600,
+    ["trollge true potential's:emperor of war"] = 2600,
     ["decayed reaper"] = 2400,
+    ["omega booster"] = 2150,
     ["true reaper essence"] = 1650,
     ["reaper"] = 1550,
+    ["ultra booster"] = 1500,
     ["trollge: suppressed potential"] = 1450,
     ["trollge suppressed potential"] = 1450,
-    ["ultra booster"] = 1450,
     ["dancer"] = 1450,
     ["golden feddy"] = 1100,
     ["feddy"] = 1029,
@@ -65,19 +69,20 @@ local ValueTable = {
     ["meme cup"] = 770,
     ["lord of darkness"] = 750,
     ["meme troll:???"] = 685,
-    ["meme troll + evil skin"] = 675,
+    ["meme troll:evil"] = 675,
+    ["meme troll evil"] = 675,
     ["meme troll"] = 675,
     ["cursed arrow"] = 660,
-    ["hollow trolling:suppressed"] = 645,
-    ["hollow trolling suppressed"] = 645,
     ["tanglecleaver"] = 615,
     ["shadow blade"] = 600,
     ["phantom feddy"] = 600,
     ["valentines chest"] = 600,
     ["the tiantui star"] = 575,
-    ["the voices"] = 542,
-    ["the roaring knight"] = 520,
-    ["prince of the blood"] = 500,
+    ["the voices"] = 545,
+    ["hollow trolling:suppressed"] = 520,
+    ["hollow trolling suppressed"] = 520,
+    ["prince of blood"] = 500,
+    ["the roaring knight"] = 500,
     ["omnipotent"] = 450,
     ["booster"] = 400,
     ["halloween cup"] = 400,
@@ -91,88 +96,82 @@ local ValueTable = {
     ["mysterious spellbook"] = 225,
 
     -- A Tier
-    ["fear"] = 200,
-    ["halloween hell"] = 200,
     ["viridian witch"] = 200,
     ["jordan shoes"] = 200,
     ["omniversal energy cube"] = 200,
     ["halloween crate"] = 190,
-    ["easter mascot"] = 185,
     ["troll the awesome"] = 180,
     ["troll yourself"] = 175,
     ["sansta"] = 175,
     ["g@ster's soul"] = 175,
     ["g@ster’s soul"] = 175,
+    ["ruler:budget"] = 170,
+    ["devourer of omniversal"] = 170,
+    ["taller guy"] = 170,
     ["magic staff"] = 170,
     ["easter cup"] = 160,
     ["glitched vhs tape"] = 160,
     ["the tiantui star fragment"] = 160,
+    ["fear"] = 160,
+    ["halloween hell"] = 160,
+    ["halloween trickster"] = 160,
     ["sussy baka"] = 155,
-    ["easter priest"] = 150,
+    ["easter mascot"] = 150,
     ["frostbite"] = 150,
     ["spring trap"] = 150,
     ["lonely cup"] = 145,
-    ["grinch"] = 145,
     ["shadow crystal"] = 140,
-    ["debug:skin"] = 130,
-    ["debug"] = 130,
-    ["lonely one"] = 130,
-    ["santa"] = 130,
-    ["cold crusader"] = 130,
-    ["frost spirit"] = 130,
-    ["halloween trickster"] = 130,
-    ["elf"] = 130,
+    ["troll:debug:malware"] = 130,
+    ["troll:debug:bsod"] = 130,
     ["troll:debug"] = 125,
     ["blood grail"] = 125,
-    ["pumpking"] = 125,
     ["black shard"] = 120,
-    ["easter warrior"] = 120,
     ["w.d gaster"] = 115,
-    ["ruler:budget"] = 115,
-    ["devourer of omniversal"] = 115,
     ["vhs sans"] = 115,
-    ["krampus"] = 115,
-    ["necromancer"] = 110,
     ["lightened cup"] = 105,
-    ["jolly troll"] = 105,
     ["golden egg"] = 100,
     ["part"] = 100,
     ["omniversal cup"] = 100,
     ["maniac's power"] = 100,
     ["maniac’s power"] = 100,
     ["painting"] = 100,
-    ["valentines protector"] = 100,
+    ["easter priest"] = 100,
     ["chara"] = 100,
     ["omniversal chest"] = 100,
-    ["yeti"] = 100,
     ["valentines shard"] = 100,
-    ["valentines angel"] = 100,
+    ["easter warrior"] = 95,
+    ["lonely one"] = 90,
+    ["pumpking"] = 90,
+    ["necromancer"] = 90,
     ["pain cup"] = 90,
-    ["trollge.exe:vanity"] = 85,
+    ["cold crusader"] = 85,
+    ["frost spirit"] = 85,
+    ["valentines angel"] = 80,
+    ["valentines protector"] = 80,
     ["corrupted fragment"] = 80,
     ["gambler"] = 80,
-    ["lightened warrior"] = 80,
     ["light warrior"] = 80,
+    ["trollge.exe:vanity"] = 80,
+    ["trollge.exe:sonic"] = 80,
     ["trollge.exe"] = 80,
     ["embodiment of hatred"] = 80,
-    ["trollge.exe:sonic"] = 80,
     ["killer fish"] = 80,
-    ["taller guy"] = 80,
     ["trollge.exe:horrortale"] = 75,
-    ["neon shard"] = 75,
     ["broke crown"] = 75,
-    ["ruler energy"] = 75,
     ["nightmare hatred"] = 75,
-    ["bad trolling:skin"] = 75,
-    ["bad trolling"] = 75,
     ["love harvester"] = 75,
+    ["jolly troll"] = 75,
+    ["krampus"] = 75,
     ["skin cup"] = 70,
+    ["determination soul"] = 70,
     ["core of the void"] = 70,
     ["the manic troll"] = 70,
+    ["nightmare shard"] = 70,
     ["stabilized energy compound"] = 70,
     ["infinite galactic cup"] = 65,
     ["ruler: guardian of the galaxy"] = 60,
-    ["tigermark bullet"] = 60,
+    ["grinch"] = 60,
+    ["yeti"] = 60,
 
     -- B Tier & Under
     ["jolly teleporter"] = 50,
@@ -180,23 +179,28 @@ local ValueTable = {
     ["sorcerers:outer"] = 50,
     ["energy power source"] = 45,
     ["sorcerers"] = 45,
+    ["santa"] = 45,
+    ["elf"] = 45,
     ["blueprint #1"] = 40,
+    ["neon shard"] = 40,
     ["soul incident"] = 40,
+    ["ruler energy"] = 35,
     ["multiversal god"] = 35,
     ["multiversal nightmare"] = 35,
     ["the sinner one"] = 35,
     ["upgraded machine"] = 35,
+    ["hopes and dreams"] = 30,
     ["omniversal dev"] = 30,
-    ["nightmare shard"] = 30,
+    ["bad trolling:lagtrain"] = 30,
+    ["bad trolling:youmu"] = 30,
     ["lbs:rejuvenation"] = 25,
     ["lbs:green"] = 25,
-    ["determination soul"] = 25,
     ["nightmare orb"] = 25,
-    ["ruler of night"] = 25,
+    ["ruller of night"] = 25,
     ["new friends"] = 25,
-    ["hopes and dreams"] = 25,
     ["energy shard"] = 25,
     ["present"] = 25,
+    ["tigermark bullet"] = 20,
     ["crazed troll"] = 20,
     ["last breath sans"] = 20,
     ["hardmode sans"] = 20,
@@ -206,8 +210,10 @@ local ValueTable = {
     ["king shard"] = 20,
     ["metal"] = 20,
     ["jeff the killer:chad"] = 18,
+    ["sans:pacifist:ao no sumika"] = 17,
     ["anti ruler"] = 16,
     ["ruler chest"] = 15,
+    ["bad trolling"] = 15,
     ["mech troll"] = 15,
     ["trollge core"] = 10,
     ["purple guy"] = 10,
@@ -217,7 +223,9 @@ local ValueTable = {
     ["slenderman"] = 3,
 }
 
--- 3. Hàm định dạng số có dấu phẩy
+-- Cache kết quả đã tính để tránh lặp lại thuật toán xử lý chuỗi
+local ValueCache = {}
+
 local function formatNumber(n)
     local formatted = tostring(n)
     while true do
@@ -228,60 +236,39 @@ local function formatNumber(n)
     return formatted
 end
 
--- 4. Thuật toán làm sạch tên và So sánh độ tương đồng (Fuzzy Matching)
 local function cleanString(str)
     if not str then return "" end
     local clean = string.lower(str)
     clean = string.gsub(clean, "[%[%]%_%>%<%>%:%'%>%\"%@%#%$%*%~%`%-]", " ")
     clean = string.gsub(clean, "%s+", " ")
-    clean = string.gsub(clean, "^%s*(.-)%s*$", "%1")
-    return clean
+    return string.gsub(clean, "^%s*(.-)%s*$", "%1")
 end
 
 local function levenshtein(s1, s2)
     local len1, len2 = #s1, #s2
     if len1 == 0 then return len2 end
     if len2 == 0 then return len1 end
-
     local matrix = {}
-    for i = 0, len1 do
-        matrix[i] = {}
-        matrix[i][0] = i
-    end
-    for j = 0, len2 do
-        matrix[0][j] = j
-    end
-
+    for i = 0, len1 do matrix[i] = {[0] = i} end
+    for j = 0, len2 do matrix[0][j] = j end
     for i = 1, len1 do
         local b1 = string.byte(s1, i)
         for j = 1, len2 do
             local b2 = string.byte(s2, j)
             local cost = (b1 == b2) and 0 or 1
-            matrix[i][j] = math.min(
-                matrix[i - 1][j] + 1,
-                matrix[i][j - 1] + 1,
-                matrix[i - 1][j - 1] + cost
-            )
+            matrix[i][j] = math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost)
         end
     end
     return matrix[len1][len2]
 end
 
-local function getSimilarity(s1, s2)
-    local maxLen = math.max(#s1, #s2)
-    if maxLen == 0 then return 1 end
-    local dist = levenshtein(s1, s2)
-    return 1 - (dist / maxLen)
-end
-
--- 5. Hàm lấy Value thông minh
 local function getItemValue(item)
-    local namesToTest = { item.Name }
+    if ValueCache[item] then return ValueCache[item] end
 
+    local namesToTest = { item.Name }
     if item:IsA("TextLabel") or item:IsA("TextButton") then
         table.insert(namesToTest, item.Text)
     end
-
     for _, child in ipairs(item:GetChildren()) do
         if child:IsA("StringValue") then
             table.insert(namesToTest, child.Value)
@@ -293,42 +280,47 @@ local function getItemValue(item)
     local cleanedNames = {}
     for _, rawName in ipairs(namesToTest) do
         local cName = cleanString(rawName)
-        if cName ~= "" then
-            table.insert(cleanedNames, cName)
-        end
+        if cName ~= "" then table.insert(cleanedNames, cName) end
     end
 
+    -- Exact match
     for _, cName in ipairs(cleanedNames) do
         if ValueTable[cName] then
+            ValueCache[item] = ValueTable[cName]
             return ValueTable[cName]
         end
     end
 
+    -- Substring match
     for _, cName in ipairs(cleanedNames) do
         for nameInTable, val in pairs(ValueTable) do
             if string.find(cName, nameInTable, 1, true) or string.find(nameInTable, cName, 1, true) then
                 local lenRatio = #cName / #nameInTable
                 if lenRatio >= 0.65 and lenRatio <= 1.35 then
+                    ValueCache[item] = val
                     return val
                 end
             end
         end
     end
 
+    -- Fuzzy Match (Levenshtein)
     local bestMatchVal = 0
     local highestSimilarity = 0
-    local MIN_SIMILARITY = 0.72
-
     for _, cName in ipairs(cleanedNames) do
         for nameInTable, val in pairs(ValueTable) do
-            local similarity = getSimilarity(cName, nameInTable)
-            if similarity > highestSimilarity and similarity >= MIN_SIMILARITY then
-                highestSimilarity = similarity
-                bestMatchVal = val
+            local maxLen = math.max(#cName, #nameInTable)
+            if maxLen > 0 then
+                local sim = 1 - (levenshtein(cName, nameInTable) / maxLen)
+                if sim > highestSimilarity and sim >= 0.72 then
+                    highestSimilarity = sim
+                    bestMatchVal = val
+                end
             end
         end
     end
 
+    ValueCache[item] = bestMatchVal
     return bestMatchVal
 end
 
@@ -343,19 +335,16 @@ local function calculateTotalValue(container)
     return totalVal
 end
 
--- 6. Tạo ScreenGui
+-- ==========================================
+-- GIAO DIỆN UI (REAPERHUB THEME)
+-- ==========================================
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = guiName
 screenGui.ResetOnSpawn = false
 
-pcall(function()
-    screenGui.Parent = CoreGui
-end)
-if not screenGui.Parent then
-    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-end
+pcall(function() screenGui.Parent = CoreGui end)
+if not screenGui.Parent then screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
--- Nút ON/OFF (ReaperHub Style)
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 50, 0, 24)
 toggleBtn.Position = UDim2.new(1, -170, 0, -20)
@@ -377,7 +366,6 @@ btnStroke.Thickness = 1.2
 btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 btnStroke.Parent = toggleBtn
 
--- Khung UI chính (ReaperHub Theme)
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 160, 0, 90)
 mainFrame.Position = UDim2.new(1, -170, 0, 8)
@@ -427,7 +415,6 @@ createCell(UDim2.new(0.52, 0, 0.06, 0), UDim2.new(0.44, 0, 0.32, 0), "other", tr
 local youValue = createCell(UDim2.new(0.04, 0, 0.42, 0), UDim2.new(0.44, 0, 0.52, 0), "Nothing", false)
 local otherValue = createCell(UDim2.new(0.52, 0, 0.42, 0), UDim2.new(0.44, 0, 0.52, 0), "Nothing", false)
 
--- Xử lý ẩn/hiện bảng khi bấm nút ON/OFF
 local isVisible = true
 toggleBtn.MouseButton1Click:Connect(function()
     isVisible = not isVisible
@@ -436,45 +423,83 @@ toggleBtn.MouseButton1Click:Connect(function()
     toggleBtn.BackgroundColor3 = isVisible and Color3.fromRGB(28, 28, 28) or Color3.fromRGB(45, 45, 45)
 end)
 
--- 7. Cập nhật liên tục & So sánh tỷ lệ
+-- ==========================================
+-- CẬP NHẬT TỐI ƯU SIÊU MƯỢT (EVENT-BASED)
+-- ==========================================
+local activeConnections = {}
+
+local function clearConnections()
+    for _, conn in ipairs(activeConnections) do
+        conn:Disconnect()
+    end
+    table.clear(activeConnections)
+end
+
+local function updateTradeValues(myOffer, tOffer)
+    local myTotalVal = calculateTotalValue(myOffer)
+    local tTotalVal = calculateTotalValue(tOffer)
+
+    youValue.Text = formatNumber(myTotalVal)
+    otherValue.Text = formatNumber(tTotalVal)
+
+    if myTotalVal == 0 then
+        youValue.TextColor3 = Color3.fromRGB(0, 255, 0)
+    else
+        local ratio = tTotalVal / myTotalVal
+        if ratio >= 1 then
+            youValue.TextColor3 = Color3.fromRGB(0, 255, 0)
+        elseif ratio >= 0.75 then
+            youValue.TextColor3 = Color3.fromRGB(255, 255, 0)
+        elseif ratio >= 0.50 then
+            youValue.TextColor3 = Color3.fromRGB(255, 140, 0)
+        else
+            youValue.TextColor3 = Color3.fromRGB(255, 50, 50)
+        end
+    end
+end
+
+-- Vòng lặp nhẹ kiểm tra khi mở/đóng cửa sổ Trade
 task.spawn(function()
-    while task.wait(0.1) do
+    local lastState = false
+    while task.wait(0.5) do
         pcall(function()
             local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
             local trade = playerGui and playerGui:FindFirstChild("Trade")
             local trader = trade and trade:FindFirstChild("Trader")
 
             if trader and trader.Visible then
-                local myOffer = trader:FindFirstChild("MyOffer")
-                local tOffer = trader:FindFirstChild("TOffer")
+                if not lastState then
+                    lastState = true
+                    table.clear(ValueCache) -- Làm sạch cache cho phiên trade mới
+                    clearConnections()
 
-                local myTotalVal = calculateTotalValue(myOffer)
-                local tTotalVal = calculateTotalValue(tOffer)
+                    local myOffer = trader:FindFirstChild("MyOffer")
+                    local tOffer = trader:FindFirstChild("TOffer")
 
-                youValue.Text = formatNumber(myTotalVal)
-                otherValue.Text = formatNumber(tTotalVal)
-                otherValue.TextColor3 = Color3.fromRGB(255, 255, 255)
-
-                if myTotalVal == 0 then
-                    youValue.TextColor3 = Color3.fromRGB(0, 255, 0)
-                else
-                    local ratio = tTotalVal / myTotalVal
-
-                    if ratio >= 1 then
-                        youValue.TextColor3 = Color3.fromRGB(0, 255, 0)
-                    elseif ratio >= 0.75 then
-                        youValue.TextColor3 = Color3.fromRGB(255, 255, 0)
-                    elseif ratio >= 0.50 then
-                        youValue.TextColor3 = Color3.fromRGB(255, 140, 0)
-                    else
-                        youValue.TextColor3 = Color3.fromRGB(255, 50, 50)
+                    local function onTradeChanged()
+                        updateTradeValues(myOffer, tOffer)
                     end
+
+                    if myOffer then
+                        table.insert(activeConnections, myOffer.ChildAdded:Connect(onTradeChanged))
+                        table.insert(activeConnections, myOffer.ChildRemoved:Connect(onTradeChanged))
+                    end
+                    if tOffer then
+                        table.insert(activeConnections, tOffer.ChildAdded:Connect(onTradeChanged))
+                        table.insert(activeConnections, tOffer.ChildRemoved:Connect(onTradeChanged))
+                    end
+
+                    updateTradeValues(myOffer, tOffer)
                 end
             else
-                youValue.Text = "Nothing"
-                otherValue.Text = "Nothing"
-                youValue.TextColor3 = Color3.fromRGB(255, 255, 255)
-                otherValue.TextColor3 = Color3.fromRGB(255, 255, 255)
+                if lastState then
+                    lastState = false
+                    clearConnections()
+                    youValue.Text = "Nothing"
+                    otherValue.Text = "Nothing"
+                    youValue.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    otherValue.TextColor3 = Color3.fromRGB(255, 255, 255)
+                end
             end
         end)
     end
