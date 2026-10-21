@@ -9,7 +9,7 @@ if CoreGui:FindFirstChild("ReaperHub_GUI") then
 end
 
 -- ==========================================
--- QUẢN LÝ CONFIG (LƯU & NẠP CẤU HÌNH + NGÔN NGỮ)
+-- QUẢN LÝ CONFIG (LƯU & NẠP TẤT CẢ TRẠNG THÁI)
 -- ==========================================
 local ConfigFile = "ReaperHub_Config.json"
 _G.ReaperHubConfig = _G.ReaperHubConfig or { 
@@ -20,7 +20,9 @@ _G.ReaperHubConfig = _G.ReaperHubConfig or {
 
 local function SaveConfig()
     pcall(function()
-        if writefile then writefile(ConfigFile, HttpService:JSONEncode(_G.ReaperHubConfig)) end
+        if writefile then 
+            writefile(ConfigFile, HttpService:JSONEncode(_G.ReaperHubConfig)) 
+        end
     end)
 end
 
@@ -29,9 +31,9 @@ local function LoadConfig()
         if readfile and isfile and isfile(ConfigFile) then
             local data = HttpService:JSONDecode(readfile(ConfigFile))
             if type(data) == "table" then
-                _G.ReaperHubConfig = data
-                _G.ReaperHubConfig.Toggles = _G.ReaperHubConfig.Toggles or {}
-                _G.ReaperHubConfig.Language = _G.ReaperHubConfig.Language or "English"
+                _G.ReaperHubConfig.AutoSave = data.AutoSave or false
+                _G.ReaperHubConfig.Language = data.Language or "English"
+                _G.ReaperHubConfig.Toggles = data.Toggles or {}
             end
         end
     end)
@@ -106,7 +108,6 @@ local tabs = {}
 local function CreateTab(name, isFirst)
     local TabBtn = Instance.new("TextButton")
     TabBtn.Size = UDim2.new(0, 85, 1, 0)
-    -- Đổi màu tab nét và rõ hơn
     TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(45, 45, 45) or Color3.fromRGB(25, 25, 25)
     TabBtn.Text = name
     TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
@@ -122,12 +123,11 @@ local function CreateTab(name, isFirst)
     local Page = Instance.new("ScrollingFrame")
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.BackgroundTransparency = 1
-    Page.CanvasSize = UDim2.new(0, 0, 0, 380)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 420)
     Page.ScrollBarThickness = 6
     Page.Visible = isFirst
     Page.Parent = PagesContainer
 
-    -- Thêm UIListLayout trực tiếp để tự động xếp các mục từ trên xuống dưới
     local PageLayout = Instance.new("UIListLayout", Page)
     PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
     PageLayout.Padding = UDim.new(0, 6)
@@ -160,7 +160,7 @@ for _, t in ipairs(tabs) do
     end)
 end
 
--- HÀM THỰC THI SCRIPT TỪ GITHUB
+-- HÀM CHẠY SCRIPT TỪ GITHUB
 local function RunRaw(rawUrl)
     if not rawUrl or rawUrl == "" then return end
     task.spawn(function()
@@ -172,7 +172,12 @@ local function RunRaw(rawUrl)
     end)
 end
 
--- HÀM TẠO TIÊU ĐỀ
+local orderCounter = 0
+local function GetNextOrder()
+    orderCounter = orderCounter + 1
+    return orderCounter
+end
+
 local function AddSectionHeader(parentContainer, titleText)
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, 0, 0, 22)
@@ -182,15 +187,16 @@ local function AddSectionHeader(parentContainer, titleText)
     lbl.Font = Enum.Font.GothamBold
     lbl.TextSize = 13
     lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.LayoutOrder = GetNextOrder()
     lbl.Parent = parentContainer
     return lbl
 end
 
--- HÀM TẠO NÚT BẬT/TẮT (TOGGLE)
 local function AddBtn(parentContainer, btnName, rawUrl)
     local Container = Instance.new("Frame")
     Container.Size = UDim2.new(1, 0, 0, 36)
     Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    Container.LayoutOrder = GetNextOrder()
     Container.Parent = parentContainer
     Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 4)
     
@@ -246,11 +252,11 @@ local function AddBtn(parentContainer, btnName, rawUrl)
     end)
 end
 
--- HÀM TẠO NÚT BẤM 1 LẦN (SERVER HOP)
 local function AddClickBtn(parentContainer, btnName, rawUrl)
     local Container = Instance.new("Frame")
     Container.Size = UDim2.new(1, 0, 0, 36)
     Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    Container.LayoutOrder = GetNextOrder()
     Container.Parent = parentContainer
     Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 4)
     
@@ -273,12 +279,12 @@ local function AddClickBtn(parentContainer, btnName, rawUrl)
     end)
 end
 
--- DROPDOWN NGÔN NGỮ (TỰ LƯU CONFIG)
 local function AddLanguageDropdown(parentContainer)
     local DropdownContainer = Instance.new("Frame")
     DropdownContainer.Size = UDim2.new(1, 0, 0, 36)
     DropdownContainer.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     DropdownContainer.ClipsDescendants = true
+    DropdownContainer.LayoutOrder = GetNextOrder()
     DropdownContainer.Parent = parentContainer
     Instance.new("UICorner", DropdownContainer).CornerRadius = UDim.new(0, 4)
     
@@ -340,7 +346,7 @@ local function AddLanguageDropdown(parentContainer)
             ArrowLbl.Text = ">"
             DropdownContainer:TweenSize(UDim2.new(1, 0, 0, 36), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
             
-            -- Cập nhật ngôn ngữ và lưu file
+            -- Cập nhật ngôn ngữ và tự lưu vào file cấu hình nếu AutoSave bật
             _G.ReaperHubConfig.Language = lang
             TitleLbl.Text = "Language: " .. lang
             if _G.ReaperHubConfig.AutoSave then SaveConfig() end
@@ -356,13 +362,8 @@ local function AddLanguageDropdown(parentContainer)
     end)
 end
 
--- Khôi phục ngôn ngữ đã lưu khi vừa vào game
-if _G.ReaperHubConfig.Language and _G.ReaperHubConfig.Language ~= "English" then
-    RunRaw("https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/LanguageModule.lua")
-end
-
 -- ==========================================
--- GÁN NỘI DUNG THEO ĐÚNG THỨ TỰ CẦN HIỂN THỊ
+-- XÂY DỰNG GIAO DIỆN CÁC TRANG (CÓ LayoutOrder ĐẢM BẢO KHÔNG BỊ LỆCH)
 -- ==========================================
 
 -- MAIN PAGE
@@ -371,6 +372,7 @@ AddSectionHeader(MainPage, "Information")
 local InfoFrame = Instance.new("Frame")
 InfoFrame.Size = UDim2.new(1, 0, 0, 120)
 InfoFrame.BackgroundTransparency = 1
+InfoFrame.LayoutOrder = GetNextOrder()
 InfoFrame.Parent = MainPage
 
 local LeftInfo = Instance.new("Frame")
@@ -435,7 +437,7 @@ AddBtn(MainPage, "Ping stat", "https://raw.githubusercontent.com/ReaperHub1306/R
 AddBtn(MainPage, "Server time", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerTime.lua")
 AddBtn(MainPage, "Chest stat", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ChestStat.lua")
 
--- VISUAL PAGE (THỨ TỰ CHUẨN: TIÊU ĐỀ -> NÚT)
+-- VISUAL PAGE
 AddSectionHeader(VisualPage, "ESP")
 AddBtn(VisualPage, "ESP Chest", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspChest.lua")
 AddBtn(VisualPage, "ESP Boss", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspBoss.lua")
@@ -459,7 +461,7 @@ AddSectionHeader(SettingPage, "Options")
 AddBtn(SettingPage, "Save config", "")
 AddLanguageDropdown(SettingPage)
 
--- ĐO FPS & NÚT R
+-- Đo FPS & Nút R
 local sec, frames = 0, 0
 RunService.RenderStepped:Connect(function(dt)
     sec = sec + dt
