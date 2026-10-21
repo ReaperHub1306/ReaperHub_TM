@@ -263,6 +263,111 @@ local function AddSectionHeader(parentContainer, titleText)
     return lbl
 end
 
+-- HÀM ĐẶC BIỆT: TẠO DROPDOWN CHỌN NGÔN NGỮ
+local function AddLanguageDropdown(parentContainer)
+    local DropdownContainer = Instance.new("Frame")
+    DropdownContainer.Size = UDim2.new(1, 0, 0, 36)
+    DropdownContainer.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    DropdownContainer.ClipsDescendants = true
+    DropdownContainer.Parent = parentContainer
+
+    local DropCorner = Instance.new("UICorner")
+    DropCorner.CornerRadius = UDim.new(0, 4)
+    DropCorner.Parent = DropdownContainer
+
+    local DropStroke = Instance.new("UIStroke")
+    DropStroke.Color = Color3.fromRGB(60, 60, 60)
+    DropStroke.Thickness = 1
+    DropStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    DropStroke.Parent = DropdownContainer
+
+    local DropHeader = Instance.new("TextButton")
+    DropHeader.Size = UDim2.new(1, 0, 0, 36)
+    DropHeader.BackgroundTransparency = 1
+    DropHeader.Text = ""
+    DropHeader.Parent = DropdownContainer
+
+    local TitleLbl = Instance.new("TextLabel")
+    TitleLbl.Size = UDim2.new(0.6, 0, 1, 0)
+    TitleLbl.Position = UDim2.new(0, 10, 0, 0)
+    TitleLbl.BackgroundTransparency = 1
+    TitleLbl.Text = "Language / Ngôn ngữ"
+    TitleLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
+    TitleLbl.Font = Enum.Font.GothamMedium
+    TitleLbl.TextSize = 13
+    TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLbl.Parent = DropHeader
+
+    local ArrowLbl = Instance.new("TextLabel")
+    ArrowLbl.Size = UDim2.new(0, 30, 1, 0)
+    ArrowLbl.Position = UDim2.new(1, -35, 0, 0)
+    ArrowLbl.BackgroundTransparency = 1
+    ArrowLbl.Text = ">"
+    ArrowLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+    ArrowLbl.Font = Enum.Font.GothamBold
+    ArrowLbl.TextSize = 14
+    ArrowLbl.Parent = DropHeader
+
+    local OptionHolder = Instance.new("Frame")
+    OptionHolder.Size = UDim2.new(1, 0, 0, 70)
+    OptionHolder.Position = UDim2.new(0, 0, 0, 36)
+    OptionHolder.BackgroundTransparency = 1
+    OptionHolder.Parent = DropdownContainer
+
+    local OptionList = Instance.new("UIListLayout")
+    OptionList.SortOrder = Enum.SortOrder.LayoutOrder
+    OptionList.Padding = UDim.new(0, 4)
+    OptionList.Parent = OptionHolder
+
+    local languages = { "English", "Tiếng Việt" }
+    local isOpen = false
+
+    for _, lang in ipairs(languages) do
+        local OptionBtn = Instance.new("TextButton")
+        OptionBtn.Size = UDim2.new(1, -12, 0, 30)
+        OptionBtn.Position = UDim2.new(0, 6, 0, 0)
+        OptionBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        OptionBtn.Text = lang
+        OptionBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        OptionBtn.Font = Enum.Font.GothamMedium
+        OptionBtn.TextSize = 13
+        OptionBtn.Parent = OptionHolder
+
+        local OptCorner = Instance.new("UICorner")
+        OptCorner.CornerRadius = UDim.new(0, 4)
+        OptCorner.Parent = OptionBtn
+
+        OptionBtn.Activated:Connect(function()
+            isOpen = false
+            ArrowLbl.Text = ">"
+            DropdownContainer:TweenSize(UDim2.new(1, 0, 0, 36), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+            
+            -- Gọi LanguageModule.lua từ GitHub để đổi ngôn ngữ
+            local rawUrl = "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/LanguageModule.lua"
+            task.spawn(function()
+                if not ScriptCache[rawUrl] then
+                    local success, code = pcall(function()
+                        return game:HttpGet(rawUrl .. "?v=" .. tick())
+                    end)
+                    if success and code then ScriptCache[rawUrl] = code end
+                end
+                if ScriptCache[rawUrl] then loadstring(ScriptCache[rawUrl])() end
+            end)
+        end)
+    end
+
+    DropHeader.Activated:Connect(function()
+        isOpen = not isOpen
+        if isOpen then
+            ArrowLbl.Text = "v"
+            DropdownContainer:TweenSize(UDim2.new(1, 0, 0, 108), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+        else
+            ArrowLbl.Text = ">"
+            DropdownContainer:TweenSize(UDim2.new(1, 0, 0, 36), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+        end
+    end)
+end
+
 -- ==========================================
 -- 6. NỘI DUNG TRANG "MAIN"
 -- ==========================================
@@ -384,7 +489,7 @@ AddBtn(VisualToggleHolder, "Fullbright", "https://raw.githubusercontent.com/Reap
 AddBtn(VisualToggleHolder, "Remove Fog", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/RemoveFog.lua")
 
 -- ==========================================
--- 8. NỘI DUNG TRANG "CLIENT" (MỚI ĐƯỢC THÊM)
+-- 8. NỘI DUNG TRANG "CLIENT"
 -- ==========================================
 local ClientToggleHolder = Instance.new("Frame")
 ClientToggleHolder.Size = UDim2.new(1, 0, 0, 0)
@@ -420,7 +525,7 @@ AddBtn(TradingToggleHolder, "Items Finder", "https://raw.githubusercontent.com/R
 AddBtn(TradingToggleHolder, "Trading value", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/TradingValue.lua")
 
 -- ==========================================
--- 10. NỘI DUNG TRANG "SETTING" (Gọi từ GitHub)
+-- 10. NỘI DUNG TRANG "SETTING"
 -- ==========================================
 local SettingToggleHolder = Instance.new("Frame")
 SettingToggleHolder.Size = UDim2.new(1, 0, 0, 0)
@@ -435,7 +540,7 @@ SettingToggleLayout.Parent = SettingToggleHolder
 
 AddSectionHeader(SettingToggleHolder, "Options")
 AddBtn(SettingToggleHolder, "Save config", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/SaveConfig.lua")
-AddBtn(SettingToggleHolder, "Language", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/LanguageModule.lua")
+AddLanguageDropdown(SettingToggleHolder) -- Đã trả về Dropdown chọn ngôn ngữ chuẩn!
 
 -- ==========================================
 -- 11. ĐO FPS VÀ XỬ LÝ NÚT THU GỌN "R"
