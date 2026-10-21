@@ -236,7 +236,7 @@ local function AddBtn(parentContainer, btnName, rawUrl)
     KnobCorn.CornerRadius = UDim.new(1, 0)
     KnobCorn.Parent = Knob
 
-    -- Khôi phục trạng thái từ Config
+    -- Lấy trạng thái lưu trước đó
     local isOn = _G.ReaperHubConfig.Toggles[btnName] or false
     
     local function setVisualState(state)
@@ -261,7 +261,7 @@ local function AddBtn(parentContainer, btnName, rawUrl)
         end)
     end
 
-    -- Nếu trạng thái đã được lưu là ON từ trước, tự bật khi chạy Script
+    -- Nếu config đã ghi nhớ trạng thái ON từ trước, tự bật khi chạy Script
     if isOn then
         setVisualState(true)
         runScript()
@@ -270,7 +270,11 @@ local function AddBtn(parentContainer, btnName, rawUrl)
     SwitchBtn.Activated:Connect(function()
         isOn = not isOn
         _G.ReaperHubConfig.Toggles[btnName] = isOn
-        if _G.ReaperHubConfig.AutoSave then SaveConfig() end
+        
+        -- Nếu chế độ AutoSave đang bật thì tự động lưu file ngay lập tức
+        if _G.ReaperHubConfig.AutoSave then
+            SaveConfig()
+        end
 
         if isOn then
             SwitchBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
@@ -285,7 +289,78 @@ local function AddBtn(parentContainer, btnName, rawUrl)
 end
 
 -- ==========================================
--- HÀM 2: NÚT BẤM KÍCH HOẠT 1 LẦN (CLICK BUTTON - CHO SERVER HOP)
+-- HÀM 2: NÚT DÀNH RIÊNG CHO "SAVE CONFIG"
+-- ==========================================
+local function AddSaveConfigBtn(parentContainer)
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 36)
+    Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    Container.Parent = parentContainer
+
+    local Corn = Instance.new("UICorner")
+    Corn.CornerRadius = UDim.new(0, 4)
+    Corn.Parent = Container
+
+    local Strk = Instance.new("UIStroke")
+    Strk.Color = Color3.fromRGB(60, 60, 60)
+    Strk.Thickness = 1
+    Strk.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    Strk.Parent = Container
+
+    local TextLbl = Instance.new("TextLabel")
+    TextLbl.Size = UDim2.new(1, -60, 1, 0)
+    TextLbl.Position = UDim2.new(0, 10, 0, 0)
+    TextLbl.BackgroundTransparency = 1
+    TextLbl.Text = "Save config"
+    TextLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
+    TextLbl.Font = Enum.Font.GothamMedium
+    TextLbl.TextSize = 13
+    TextLbl.TextXAlignment = Enum.TextXAlignment.Left
+    TextLbl.Parent = Container
+
+    local SwitchBtn = Instance.new("TextButton")
+    SwitchBtn.Size = UDim2.new(0, 44, 0, 22)
+    SwitchBtn.Position = UDim2.new(1, -54, 0.5, -11)
+    SwitchBtn.BackgroundColor3 = _G.ReaperHubConfig.AutoSave and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
+    SwitchBtn.Text = ""
+    SwitchBtn.AutoButtonColor = false
+    SwitchBtn.Parent = Container
+
+    local SwitchCorn = Instance.new("UICorner")
+    SwitchCorn.CornerRadius = UDim.new(1, 0)
+    SwitchCorn.Parent = SwitchBtn
+
+    local Knob = Instance.new("Frame")
+    Knob.Size = UDim2.new(0, 18, 0, 18)
+    Knob.Position = _G.ReaperHubConfig.AutoSave and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+    Knob.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
+    Knob.Parent = SwitchBtn
+
+    local KnobCorn = Instance.new("UICorner")
+    KnobCorn.CornerRadius = UDim.new(1, 0)
+    KnobCorn.Parent = Knob
+
+    SwitchBtn.Activated:Connect(function()
+        _G.ReaperHubConfig.AutoSave = not _G.ReaperHubConfig.AutoSave
+        local isOn = _G.ReaperHubConfig.AutoSave
+
+        if isOn then
+            SwitchBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+            Knob:TweenPosition(UDim2.new(1, -20, 0.5, -9), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.15, true)
+            -- Bật AutoSave sẽ lập tức quét toàn bộ các công tắc hiện tại và lưu ngay vào file
+            SaveConfig()
+            print("[ReaperHub] Auto Save Enabled & Config Saved!")
+        else
+            SwitchBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Knob:TweenPosition(UDim2.new(0, 2, 0.5, -9), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.15, true)
+            SaveConfig()
+            print("[ReaperHub] Auto Save Disabled!")
+        end
+    end)
+end
+
+-- ==========================================
+-- HÀM 3: NÚT BẤM KÍCH HOẠT 1 LẦN (CLICK BUTTON - CHO SERVER HOP)
 -- ==========================================
 local function AddClickBtn(parentContainer, btnName, rawUrl)
     local Container = Instance.new("Frame")
@@ -313,7 +388,6 @@ local function AddClickBtn(parentContainer, btnName, rawUrl)
     ClickBtn.Parent = Container
 
     ClickBtn.Activated:Connect(function()
-        -- Hiệu ứng nháy nút khi bấm
         Container.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
         task.delay(0.15, function()
             Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
@@ -579,7 +653,6 @@ ClientToggleLayout.Parent = ClientToggleHolder
 
 AddSectionHeader(ClientToggleHolder, "Utilities")
 AddBtn(ClientToggleHolder, "Anti-AFK", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AntiAFK.lua")
--- DÙNG AddClickBtn DÀNH RIÊNG CHO SERVER HOP (KHÔNG BỊ LƯU TRẠNG THÁI)
 AddClickBtn(ClientToggleHolder, "Server Hop", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerHop.lua")
 
 -- TRADING PAGE
@@ -611,7 +684,8 @@ SettingToggleLayout.Padding = UDim.new(0, 6)
 SettingToggleLayout.Parent = SettingToggleHolder
 
 AddSectionHeader(SettingToggleHolder, "Options")
-AddBtn(SettingToggleHolder, "Save config", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/SaveConfig.lua")
+-- SỬ DỤNG HÀM XỬ LÝ SAVE CONFIG CHUẨN
+AddSaveConfigBtn(SettingToggleHolder)
 AddLanguageDropdown(SettingToggleHolder)
 
 -- Đo FPS & Nút R
