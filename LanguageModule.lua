@@ -1,13 +1,9 @@
 local CoreGui = game:GetService("CoreGui")
 local gui = CoreGui:FindFirstChild("ReaperHub_GUI")
-
 if not gui then return end
 
--- Chuyển đổi trạng thái ngôn ngữ
-_G.ReaperHubLanguage = (_G.ReaperHubLanguage == "Tiếng Việt") and "English" or "Tiếng Việt"
-local currentLang = _G.ReaperHubLanguage
+local currentLang = _G.ReaperHubConfig and _G.ReaperHubConfig.Language or "English"
 
--- Bảng từ điển dịch thuật
 local Dictionary = {
     ["Main"] = "Chính",
     ["visual"] = "Hình ảnh",
@@ -19,6 +15,7 @@ local Dictionary = {
     ["Stats"] = "Chỉ số",
     ["ESP"] = "Hiển thị ESP",
     ["Environment"] = "Môi trường",
+    ["Utilities"] = "Tiện ích",
     ["Tools"] = "Công cụ",
     ["Options"] = "Tùy chọn",
     ["Ping stat"] = "Bảng Ping",
@@ -28,31 +25,25 @@ local Dictionary = {
     ["ESP Boss"] = "ESP Boss",
     ["Fullbright"] = "Độ sáng tối đa",
     ["Remove Fog"] = "Xóa sương mù",
+    ["Anti-AFK"] = "Chống AFK",
+    ["Server Hop"] = "Đổi Server",
     ["Items Finder"] = "Tìm vật phẩm",
     ["Trading value"] = "Bảng giá Trade",
-    ["Save config"] = "Lưu cấu hình",
-    ["Language"] = "Ngôn ngữ"
+    ["Save config"] = "Lưu cấu hình"
 }
 
--- Hàm đảo ngược từ điển khi chuyển lại về Tiếng Anh
 local ReverseDict = {}
 for en, vi in pairs(Dictionary) do
     ReverseDict[vi] = en
 end
 
--- Quét toàn bộ TextLabel / TextButton trong GUI để đổi chữ
 for _, obj in ipairs(gui:GetDescendants()) do
     if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+        local text = obj.Text
         if currentLang == "Tiếng Việt" then
-            if Dictionary[obj.Text] then
-                obj.Text = Dictionary[obj.Text]
-            end
+            if Dictionary[text] then obj.Text = Dictionary[text] end
         else
-            if ReverseDict[obj.Text] then
-                obj.Text = ReverseDict[obj.Text]
-            end
+            if ReverseDict[text] then obj.Text = ReverseDict[text] end
         end
     end
 end
-
-print("[ReaperHub] Language changed to: " .. currentLang)
