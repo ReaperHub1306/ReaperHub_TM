@@ -384,7 +384,25 @@ AddBtn(VisualToggleHolder, "Fullbright", "https://raw.githubusercontent.com/Reap
 AddBtn(VisualToggleHolder, "Remove Fog", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/RemoveFog.lua")
 
 -- ==========================================
--- 8. NỘI DUNG TRANG "TRADING"
+-- 8. NỘI DUNG TRANG "CLIENT" (MỚI ĐƯỢC THÊM)
+-- ==========================================
+local ClientToggleHolder = Instance.new("Frame")
+ClientToggleHolder.Size = UDim2.new(1, 0, 0, 0)
+ClientToggleHolder.Position = UDim2.new(0, 0, 0, 10)
+ClientToggleHolder.BackgroundTransparency = 1
+ClientToggleHolder.Parent = CilentPage
+
+local ClientToggleLayout = Instance.new("UIListLayout")
+ClientToggleLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ClientToggleLayout.Padding = UDim.new(0, 6)
+ClientToggleLayout.Parent = ClientToggleHolder
+
+AddSectionHeader(ClientToggleHolder, "Utilities")
+AddBtn(ClientToggleHolder, "Anti-AFK", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AntiAFK.lua")
+AddBtn(ClientToggleHolder, "Server Hop", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerHop.lua")
+
+-- ==========================================
+-- 9. NỘI DUNG TRANG "TRADING"
 -- ==========================================
 local TradingToggleHolder = Instance.new("Frame")
 TradingToggleHolder.Size = UDim2.new(1, 0, 0, 0)
@@ -402,7 +420,7 @@ AddBtn(TradingToggleHolder, "Items Finder", "https://raw.githubusercontent.com/R
 AddBtn(TradingToggleHolder, "Trading value", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/TradingValue.lua")
 
 -- ==========================================
--- 9. NỘI DUNG TRANG "SETTING" (Gọi từ GitHub)
+-- 10. NỘI DUNG TRANG "SETTING" (Gọi từ GitHub)
 -- ==========================================
 local SettingToggleHolder = Instance.new("Frame")
 SettingToggleHolder.Size = UDim2.new(1, 0, 0, 0)
@@ -416,12 +434,11 @@ SettingToggleLayout.Padding = UDim.new(0, 6)
 SettingToggleLayout.Parent = SettingToggleHolder
 
 AddSectionHeader(SettingToggleHolder, "Options")
--- Gọi file SaveConfig.lua và LanguageModule.lua từ GitHub của bạn
 AddBtn(SettingToggleHolder, "Save config", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/SaveConfig.lua")
 AddBtn(SettingToggleHolder, "Language", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/LanguageModule.lua")
 
 -- ==========================================
--- 10. ĐO FPS VÀ XỬ LÝ NÚT THU GỌN "R"
+-- 11. ĐO FPS VÀ XỬ LÝ NÚT THU GỌN "R"
 -- ==========================================
 local sec = 0
 local frames = 0
