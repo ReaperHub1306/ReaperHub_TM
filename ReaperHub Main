@@ -1,12 +1,44 @@
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 
 -- Xóa GUI cũ nếu đã tồn tại
 if CoreGui:FindFirstChild("ReaperHub_GUI") then
     CoreGui.ReaperHub_GUI:Destroy()
 end
+
+-- ==========================================
+-- QUẢN LÝ CONFIG (LƯU & NẠP CẤU HÌNH)
+-- ==========================================
+local ConfigFile = "ReaperHub_Config.json"
+_G.ReaperHubConfig = _G.ReaperHubConfig or {
+    AutoSave = false,
+    Toggles = {}
+}
+
+local function SaveConfig()
+    pcall(function()
+        if writefile then
+            writefile(ConfigFile, HttpService:JSONEncode(_G.ReaperHubConfig))
+        end
+    end)
+end
+
+local function LoadConfig()
+    pcall(function()
+        if readfile and isfile and isfile(ConfigFile) then
+            local data = HttpService:JSONDecode(readfile(ConfigFile))
+            if type(data) == "table" then
+                _G.ReaperHubConfig = data
+                _G.ReaperHubConfig.Toggles = _G.ReaperHubConfig.Toggles or {}
+            end
+        end
+    end)
+end
+
+LoadConfig()
 
 -- ==========================================
 -- TẠO SCREEN GUI CHÍNH
@@ -16,12 +48,9 @@ ScreenGui.Name = "ReaperHub_GUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
--- BẢNG LƯU CACHE SCRIPT (CHỐNG KHỰNG / GIẢM ĐỘ TRỄ)
 local ScriptCache = {}
 
--- ==========================================
--- 1. NÚT BẬT TẮT (Chữ R tròn)
--- ==========================================
+-- 1. NÚT BẬT TẮT "R"
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Size = UDim2.new(0, 45, 0, 45)
 ToggleBtn.Position = UDim2.new(0, 20, 0.55, 0)
@@ -43,14 +72,10 @@ ToggleStroke.Thickness = 1.5
 ToggleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 ToggleStroke.Parent = ToggleBtn
 
--- ==========================================
 -- 2. KHUNG MAIN
--- ==========================================
-local DefaultPos = UDim2.new(0.5, -260, 0.5, -155)
-
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 520, 0, 310)
-MainFrame.Position = DefaultPos
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -155)
 MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -66,12 +91,9 @@ MainStroke.Thickness = 1.5
 MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Parent = MainFrame
 
--- ==========================================
 -- 3. TIÊU ĐỀ
--- ==========================================
 local TitleText = Instance.new("TextLabel")
 TitleText.Size = UDim2.new(1, 0, 0, 32)
-TitleText.Position = UDim2.new(0, 0, 0, 0)
 TitleText.BackgroundTransparency = 1
 TitleText.Text = "ReaperHub"
 TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -79,9 +101,7 @@ TitleText.Font = Enum.Font.GothamBold
 TitleText.TextSize = 15
 TitleText.Parent = MainFrame
 
--- ==========================================
 -- 4. THANH TAB NGANG
--- ==========================================
 local TabScroll = Instance.new("ScrollingFrame")
 TabScroll.Size = UDim2.new(1, -20, 0, 32)
 TabScroll.Position = UDim2.new(0, 10, 0, 35)
@@ -97,9 +117,7 @@ TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 TabListLayout.Padding = UDim.new(0, 6)
 TabListLayout.Parent = TabScroll
 
--- ==========================================
 -- 5. KHUNG CHỨA TRANG
--- ==========================================
 local PagesContainer = Instance.new("Frame")
 PagesContainer.Size = UDim2.new(1, -20, 1, -80)
 PagesContainer.Position = UDim2.new(0, 10, 0, 72)
@@ -130,7 +148,6 @@ local function CreateTab(name, isFirst)
     
     local Page = Instance.new("ScrollingFrame")
     Page.Size = UDim2.new(1, 0, 1, 0)
-    Page.Position = UDim2.new(0, 0, 0, 0)
     Page.BackgroundTransparency = 1
     Page.CanvasSize = UDim2.new(0, 0, 0, 360)
     Page.ScrollBarThickness = 6
@@ -143,7 +160,6 @@ local function CreateTab(name, isFirst)
     return Page
 end
 
--- TẠO CÁC TAB
 local MainPage = CreateTab("Main", true)
 local VisualPage = CreateTab("visual", false)
 local CilentPage = CreateTab("Cilent", false)
@@ -169,7 +185,7 @@ for _, t in ipairs(tabs) do
 end
 
 -- ==========================================
--- HÀM DÙNG CHUNG ĐỂ TẠO NÚT BẬT/TẮT (TOGGLE)
+-- HÀM 1: NÚT CÔNG TẮC BẬT/TẮT (TOGGLE & AUTO SAVE)
 -- ==========================================
 local function AddBtn(parentContainer, btnName, rawUrl)
     local Container = Instance.new("Frame")
@@ -220,9 +236,42 @@ local function AddBtn(parentContainer, btnName, rawUrl)
     KnobCorn.CornerRadius = UDim.new(1, 0)
     KnobCorn.Parent = Knob
 
-    local isOn = false
+    -- Khôi phục trạng thái từ Config
+    local isOn = _G.ReaperHubConfig.Toggles[btnName] or false
+    
+    local function setVisualState(state)
+        if state then
+            SwitchBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+            Knob.Position = UDim2.new(1, -20, 0.5, -9)
+        else
+            SwitchBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Knob.Position = UDim2.new(0, 2, 0.5, -9)
+        end
+    end
+
+    local function runScript()
+        task.spawn(function()
+            if not ScriptCache[rawUrl] then
+                local success, code = pcall(function()
+                    return game:HttpGet(rawUrl .. "?v=" .. tick())
+                end)
+                if success and code then ScriptCache[rawUrl] = code end
+            end
+            if ScriptCache[rawUrl] then loadstring(ScriptCache[rawUrl])() end
+        end)
+    end
+
+    -- Nếu trạng thái đã được lưu là ON từ trước, tự bật khi chạy Script
+    if isOn then
+        setVisualState(true)
+        runScript()
+    end
+
     SwitchBtn.Activated:Connect(function()
         isOn = not isOn
+        _G.ReaperHubConfig.Toggles[btnName] = isOn
+        if _G.ReaperHubConfig.AutoSave then SaveConfig() end
+
         if isOn then
             SwitchBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
             Knob:TweenPosition(UDim2.new(1, -20, 0.5, -9), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.15, true)
@@ -230,26 +279,59 @@ local function AddBtn(parentContainer, btnName, rawUrl)
             SwitchBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             Knob:TweenPosition(UDim2.new(0, 2, 0.5, -9), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.15, true)
         end
-        
-        -- Thực thi script từ Bộ Nhớ Đệm hoặc GitHub
+
+        runScript()
+    end)
+end
+
+-- ==========================================
+-- HÀM 2: NÚT BẤM KÍCH HOẠT 1 LẦN (CLICK BUTTON - CHO SERVER HOP)
+-- ==========================================
+local function AddClickBtn(parentContainer, btnName, rawUrl)
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 36)
+    Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    Container.Parent = parentContainer
+
+    local Corn = Instance.new("UICorner")
+    Corn.CornerRadius = UDim.new(0, 4)
+    Corn.Parent = Container
+
+    local Strk = Instance.new("UIStroke")
+    Strk.Color = Color3.fromRGB(60, 60, 60)
+    Strk.Thickness = 1
+    Strk.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    Strk.Parent = Container
+
+    local ClickBtn = Instance.new("TextButton")
+    ClickBtn.Size = UDim2.new(1, 0, 1, 0)
+    ClickBtn.BackgroundTransparency = 1
+    ClickBtn.Text = btnName
+    ClickBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
+    ClickBtn.Font = Enum.Font.GothamMedium
+    ClickBtn.TextSize = 13
+    ClickBtn.Parent = Container
+
+    ClickBtn.Activated:Connect(function()
+        -- Hiệu ứng nháy nút khi bấm
+        Container.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+        task.delay(0.15, function()
+            Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+        end)
+
         task.spawn(function()
             if not ScriptCache[rawUrl] then
                 local success, code = pcall(function()
                     return game:HttpGet(rawUrl .. "?v=" .. tick())
                 end)
-                if success and code then
-                    ScriptCache[rawUrl] = code
-                end
+                if success and code then ScriptCache[rawUrl] = code end
             end
-            
-            if ScriptCache[rawUrl] then
-                loadstring(ScriptCache[rawUrl])()
-            end
+            if ScriptCache[rawUrl] then loadstring(ScriptCache[rawUrl])() end
         end)
     end)
 end
 
--- Hàm tạo tiêu đề nhóm (Section Header)
+-- HÀM TẠO TIÊU ĐỀ
 local function AddSectionHeader(parentContainer, titleText)
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, 0, 0, 22)
@@ -263,7 +345,7 @@ local function AddSectionHeader(parentContainer, titleText)
     return lbl
 end
 
--- HÀM ĐẶC BIỆT: TẠO DROPDOWN CHỌN NGÔN NGỮ
+-- DROPDOWN NGÔN NGỮ
 local function AddLanguageDropdown(parentContainer)
     local DropdownContainer = Instance.new("Frame")
     DropdownContainer.Size = UDim2.new(1, 0, 0, 36)
@@ -342,13 +424,10 @@ local function AddLanguageDropdown(parentContainer)
             ArrowLbl.Text = ">"
             DropdownContainer:TweenSize(UDim2.new(1, 0, 0, 36), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
             
-            -- Gọi LanguageModule.lua từ GitHub để đổi ngôn ngữ
             local rawUrl = "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/LanguageModule.lua"
             task.spawn(function()
                 if not ScriptCache[rawUrl] then
-                    local success, code = pcall(function()
-                        return game:HttpGet(rawUrl .. "?v=" .. tick())
-                    end)
+                    local success, code = pcall(function() return game:HttpGet(rawUrl .. "?v=" .. tick()) end)
                     if success and code then ScriptCache[rawUrl] = code end
                 end
                 if ScriptCache[rawUrl] then loadstring(ScriptCache[rawUrl])() end
@@ -369,8 +448,10 @@ local function AddLanguageDropdown(parentContainer)
 end
 
 -- ==========================================
--- 6. NỘI DUNG TRANG "MAIN"
+-- GÁN NỘI DUNG VÀO TRANG
 -- ==========================================
+
+-- MAIN PAGE
 AddSectionHeader(MainPage, "Information").Position = UDim2.new(0, 0, 0, 5)
 
 local InfoFrame = Instance.new("Frame")
@@ -416,7 +497,6 @@ local NameLabel = CreateInfoLabel("Name: " .. player.Name)
 local AgeLabel = CreateInfoLabel("Age: " .. player.AccountAge .. " days")
 local FPSLabel = CreateInfoLabel("FPS: ...")
 
--- Avatar bên phải
 local RightContainer = Instance.new("Frame")
 RightContainer.Size = UDim2.new(0.5, -15, 0, 120)
 RightContainer.Position = UDim2.new(0.5, 5, 0, 32)
@@ -447,7 +527,6 @@ AvatarImage.BackgroundTransparency = 1
 AvatarImage.Image = "rbxthumb://type=AvatarHeadShot&id=" .. player.UserId .. "&w=420&h=420"
 AvatarImage.Parent = AvatarFrame
 
--- Mục Stats
 local StatsHeader = AddSectionHeader(MainPage, "Stats")
 StatsHeader.Position = UDim2.new(0, 0, 0, 162)
 
@@ -466,9 +545,7 @@ AddBtn(MainToggleHolder, "Ping stat", "https://raw.githubusercontent.com/ReaperH
 AddBtn(MainToggleHolder, "Server time", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerTime.lua")
 AddBtn(MainToggleHolder, "Chest stat", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ChestStat.lua")
 
--- ==========================================
--- 7. NỘI DUNG TRANG "VISUAL"
--- ==========================================
+-- VISUAL PAGE
 local VisualToggleHolder = Instance.new("Frame")
 VisualToggleHolder.Size = UDim2.new(1, 0, 0, 0)
 VisualToggleHolder.Position = UDim2.new(0, 0, 0, 10)
@@ -488,9 +565,7 @@ AddSectionHeader(VisualToggleHolder, "Environment")
 AddBtn(VisualToggleHolder, "Fullbright", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/Fullbright.lua")
 AddBtn(VisualToggleHolder, "Remove Fog", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/RemoveFog.lua")
 
--- ==========================================
--- 8. NỘI DUNG TRANG "CLIENT"
--- ==========================================
+-- CLIENT PAGE
 local ClientToggleHolder = Instance.new("Frame")
 ClientToggleHolder.Size = UDim2.new(1, 0, 0, 0)
 ClientToggleHolder.Position = UDim2.new(0, 0, 0, 10)
@@ -504,11 +579,10 @@ ClientToggleLayout.Parent = ClientToggleHolder
 
 AddSectionHeader(ClientToggleHolder, "Utilities")
 AddBtn(ClientToggleHolder, "Anti-AFK", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AntiAFK.lua")
-AddBtn(ClientToggleHolder, "Server Hop", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerHop.lua")
+-- DÙNG AddClickBtn DÀNH RIÊNG CHO SERVER HOP (KHÔNG BỊ LƯU TRẠNG THÁI)
+AddClickBtn(ClientToggleHolder, "Server Hop", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerHop.lua")
 
--- ==========================================
--- 9. NỘI DUNG TRANG "TRADING"
--- ==========================================
+-- TRADING PAGE
 local TradingToggleHolder = Instance.new("Frame")
 TradingToggleHolder.Size = UDim2.new(1, 0, 0, 0)
 TradingToggleHolder.Position = UDim2.new(0, 0, 0, 10)
@@ -524,9 +598,7 @@ AddSectionHeader(TradingToggleHolder, "Tools")
 AddBtn(TradingToggleHolder, "Items Finder", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ItemsFinder.lua")
 AddBtn(TradingToggleHolder, "Trading value", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/TradingValue.lua")
 
--- ==========================================
--- 10. NỘI DUNG TRANG "SETTING"
--- ==========================================
+-- SETTING PAGE
 local SettingToggleHolder = Instance.new("Frame")
 SettingToggleHolder.Size = UDim2.new(1, 0, 0, 0)
 SettingToggleHolder.Position = UDim2.new(0, 0, 0, 10)
@@ -540,11 +612,9 @@ SettingToggleLayout.Parent = SettingToggleHolder
 
 AddSectionHeader(SettingToggleHolder, "Options")
 AddBtn(SettingToggleHolder, "Save config", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/SaveConfig.lua")
-AddLanguageDropdown(SettingToggleHolder) -- Đã trả về Dropdown chọn ngôn ngữ chuẩn!
+AddLanguageDropdown(SettingToggleHolder)
 
--- ==========================================
--- 11. ĐO FPS VÀ XỬ LÝ NÚT THU GỌN "R"
--- ==========================================
+-- Đo FPS & Nút R
 local sec = 0
 local frames = 0
 RunService.RenderStepped:Connect(function(dt)
