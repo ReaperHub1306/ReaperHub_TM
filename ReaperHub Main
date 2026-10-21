@@ -8,9 +8,15 @@ if CoreGui:FindFirstChild("ReaperHub_GUI") then
     CoreGui.ReaperHub_GUI:Destroy()
 end
 
--- QUẢN LÝ CONFIG
+-- ==========================================
+-- QUẢN LÝ CONFIG (LƯU & NẠP CẤU HÌNH + NGÔN NGỮ)
+-- ==========================================
 local ConfigFile = "ReaperHub_Config.json"
-_G.ReaperHubConfig = _G.ReaperHubConfig or { AutoSave = false, Toggles = {} }
+_G.ReaperHubConfig = _G.ReaperHubConfig or { 
+    AutoSave = false, 
+    Language = "English",
+    Toggles = {} 
+}
 
 local function SaveConfig()
     pcall(function()
@@ -25,13 +31,14 @@ local function LoadConfig()
             if type(data) == "table" then
                 _G.ReaperHubConfig = data
                 _G.ReaperHubConfig.Toggles = _G.ReaperHubConfig.Toggles or {}
+                _G.ReaperHubConfig.Language = _G.ReaperHubConfig.Language or "English"
             end
         end
     end)
 end
 LoadConfig()
 
--- KHỦNG GUI CHÍNH
+-- KHUNG GUI CHÍNH
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ReaperHub_GUI"
 ScreenGui.ResetOnSpawn = false
@@ -99,10 +106,11 @@ local tabs = {}
 local function CreateTab(name, isFirst)
     local TabBtn = Instance.new("TextButton")
     TabBtn.Size = UDim2.new(0, 85, 1, 0)
+    -- Đổi màu tab nét và rõ hơn
     TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(45, 45, 45) or Color3.fromRGB(25, 25, 25)
     TabBtn.Text = name
-    TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)
-    TabBtn.Font = Enum.Font.GothamMedium
+    TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+    TabBtn.Font = Enum.Font.GothamBold
     TabBtn.TextSize = 13
     TabBtn.Parent = TabScroll
     Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 4)
@@ -114,10 +122,15 @@ local function CreateTab(name, isFirst)
     local Page = Instance.new("ScrollingFrame")
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.BackgroundTransparency = 1
-    Page.CanvasSize = UDim2.new(0, 0, 0, 360)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 380)
     Page.ScrollBarThickness = 6
     Page.Visible = isFirst
     Page.Parent = PagesContainer
+
+    -- Thêm UIListLayout trực tiếp để tự động xếp các mục từ trên xuống dưới
+    local PageLayout = Instance.new("UIListLayout", Page)
+    PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    PageLayout.Padding = UDim.new(0, 6)
     
     table.insert(tabs, {btn = TabBtn, page = Page, stroke = TabStroke})
     return Page
@@ -137,7 +150,7 @@ for _, t in ipairs(tabs) do
             otherT.btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
             otherT.stroke.Color = Color3.fromRGB(60, 60, 60)
             otherT.stroke.Thickness = 1
-            otherT.btn.TextColor3 = Color3.fromRGB(160, 160, 160)
+            otherT.btn.TextColor3 = Color3.fromRGB(180, 180, 180)
         end
         t.page.Visible = true
         t.btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -149,6 +162,7 @@ end
 
 -- HÀM THỰC THI SCRIPT TỪ GITHUB
 local function RunRaw(rawUrl)
+    if not rawUrl or rawUrl == "" then return end
     task.spawn(function()
         if not ScriptCache[rawUrl] then
             local success, code = pcall(function() return game:HttpGet(rawUrl .. "?v=" .. tick()) end)
@@ -156,6 +170,20 @@ local function RunRaw(rawUrl)
         end
         if ScriptCache[rawUrl] then loadstring(ScriptCache[rawUrl])() end
     end)
+end
+
+-- HÀM TẠO TIÊU ĐỀ
+local function AddSectionHeader(parentContainer, titleText)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 22)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = titleText
+    lbl.TextColor3 = Color3.fromRGB(160, 160, 160)
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = parentContainer
+    return lbl
 end
 
 -- HÀM TẠO NÚT BẬT/TẮT (TOGGLE)
@@ -245,19 +273,7 @@ local function AddClickBtn(parentContainer, btnName, rawUrl)
     end)
 end
 
-local function AddSectionHeader(parentContainer, titleText)
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, 0, 0, 22)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = titleText
-    lbl.TextColor3 = Color3.fromRGB(150, 150, 150)
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextSize = 13
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = parentContainer
-    return lbl
-end
-
+-- DROPDOWN NGÔN NGỮ (TỰ LƯU CONFIG)
 local function AddLanguageDropdown(parentContainer)
     local DropdownContainer = Instance.new("Frame")
     DropdownContainer.Size = UDim2.new(1, 0, 0, 36)
@@ -279,7 +295,7 @@ local function AddLanguageDropdown(parentContainer)
     TitleLbl.Size = UDim2.new(0.6, 0, 1, 0)
     TitleLbl.Position = UDim2.new(0, 10, 0, 0)
     TitleLbl.BackgroundTransparency = 1
-    TitleLbl.Text = "Language / Ngôn ngữ"
+    TitleLbl.Text = "Language: " .. (_G.ReaperHubConfig.Language or "English")
     TitleLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
     TitleLbl.Font = Enum.Font.GothamMedium
     TitleLbl.TextSize = 13
@@ -313,7 +329,7 @@ local function AddLanguageDropdown(parentContainer)
         OptionBtn.Position = UDim2.new(0, 6, 0, 0)
         OptionBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
         OptionBtn.Text = lang
-        OptionBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        OptionBtn.TextColor3 = (_G.ReaperHubConfig.Language == lang) and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(200, 200, 200)
         OptionBtn.Font = Enum.Font.GothamMedium
         OptionBtn.TextSize = 13
         OptionBtn.Parent = OptionHolder
@@ -323,6 +339,12 @@ local function AddLanguageDropdown(parentContainer)
             isOpen = false
             ArrowLbl.Text = ">"
             DropdownContainer:TweenSize(UDim2.new(1, 0, 0, 36), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+            
+            -- Cập nhật ngôn ngữ và lưu file
+            _G.ReaperHubConfig.Language = lang
+            TitleLbl.Text = "Language: " .. lang
+            if _G.ReaperHubConfig.AutoSave then SaveConfig() end
+            
             RunRaw("https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/LanguageModule.lua")
         end)
     end
@@ -334,20 +356,29 @@ local function AddLanguageDropdown(parentContainer)
     end)
 end
 
+-- Khôi phục ngôn ngữ đã lưu khi vừa vào game
+if _G.ReaperHubConfig.Language and _G.ReaperHubConfig.Language ~= "English" then
+    RunRaw("https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/LanguageModule.lua")
+end
+
 -- ==========================================
--- GÁN NỘI DUNG VÀO TRANG
+-- GÁN NỘI DUNG THEO ĐÚNG THỨ TỰ CẦN HIỂN THỊ
 -- ==========================================
 
 -- MAIN PAGE
-AddSectionHeader(MainPage, "Information").Position = UDim2.new(0, 0, 0, 5)
+AddSectionHeader(MainPage, "Information")
 
 local InfoFrame = Instance.new("Frame")
-InfoFrame.Size = UDim2.new(0.5, -5, 0, 120)
-InfoFrame.Position = UDim2.new(0, 0, 0, 32)
+InfoFrame.Size = UDim2.new(1, 0, 0, 120)
 InfoFrame.BackgroundTransparency = 1
 InfoFrame.Parent = MainPage
 
-local InfoLayout = Instance.new("UIListLayout", InfoFrame)
+local LeftInfo = Instance.new("Frame")
+LeftInfo.Size = UDim2.new(0.5, -5, 1, 0)
+LeftInfo.BackgroundTransparency = 1
+LeftInfo.Parent = InfoFrame
+
+local InfoLayout = Instance.new("UIListLayout", LeftInfo)
 InfoLayout.Padding = UDim.new(0, 8)
 
 local function CreateInfoLabel(text)
@@ -366,7 +397,7 @@ local function CreateInfoLabel(text)
     
     local strk = Instance.new("UIStroke", lbl)
     strk.Color = Color3.fromRGB(60, 60, 60)
-    lbl.Parent = InfoFrame
+    lbl.Parent = LeftInfo
     return lbl
 end
 
@@ -375,10 +406,10 @@ CreateInfoLabel("Age: " .. player.AccountAge .. " days")
 local FPSLabel = CreateInfoLabel("FPS: ...")
 
 local RightContainer = Instance.new("Frame")
-RightContainer.Size = UDim2.new(0.5, -15, 0, 120)
-RightContainer.Position = UDim2.new(0.5, 5, 0, 32)
+RightContainer.Size = UDim2.new(0.5, -5, 1, 0)
+RightContainer.Position = UDim2.new(0.5, 5, 0, 0)
 RightContainer.BackgroundTransparency = 1
-RightContainer.Parent = MainPage
+RightContainer.Parent = InfoFrame
 
 local AvatarFrame = Instance.new("Frame")
 AvatarFrame.Size = UDim2.new(0, 120, 0, 120)
@@ -399,81 +430,34 @@ AvatarImage.BackgroundTransparency = 1
 AvatarImage.Image = "rbxthumb://type=AvatarHeadShot&id=" .. player.UserId .. "&w=420&h=420"
 AvatarImage.Parent = AvatarFrame
 
-local StatsHeader = AddSectionHeader(MainPage, "Stats")
-StatsHeader.Position = UDim2.new(0, 0, 0, 162)
+AddSectionHeader(MainPage, "Stats")
+AddBtn(MainPage, "Ping stat", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/Ping.lua")
+AddBtn(MainPage, "Server time", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerTime.lua")
+AddBtn(MainPage, "Chest stat", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ChestStat.lua")
 
-local MainToggleHolder = Instance.new("Frame")
-MainToggleHolder.Size = UDim2.new(1, 0, 0, 0)
-MainToggleHolder.Position = UDim2.new(0, 0, 0, 188)
-MainToggleHolder.BackgroundTransparency = 1
-MainToggleHolder.Parent = MainPage
+-- VISUAL PAGE (THỨ TỰ CHUẨN: TIÊU ĐỀ -> NÚT)
+AddSectionHeader(VisualPage, "ESP")
+AddBtn(VisualPage, "ESP Chest", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspChest.lua")
+AddBtn(VisualPage, "ESP Boss", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspBoss.lua")
 
-local MainToggleLayout = Instance.new("UIListLayout", MainToggleHolder)
-MainToggleLayout.Padding = UDim.new(0, 6)
-
-AddBtn(MainToggleHolder, "Ping stat", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/Ping.lua")
-AddBtn(MainToggleHolder, "Server time", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerTime.lua")
-AddBtn(MainToggleHolder, "Chest stat", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ChestStat.lua")
-
--- VISUAL PAGE
-local VisualToggleHolder = Instance.new("Frame")
-VisualToggleHolder.Size = UDim2.new(1, 0, 0, 0)
-VisualToggleHolder.Position = UDim2.new(0, 0, 0, 10)
-VisualToggleHolder.BackgroundTransparency = 1
-VisualToggleHolder.Parent = VisualPage
-
-local VisualToggleLayout = Instance.new("UIListLayout", VisualToggleHolder)
-VisualToggleLayout.Padding = UDim.new(0, 6)
-
-AddSectionHeader(VisualToggleHolder, "ESP")
-AddBtn(VisualToggleHolder, "ESP Chest", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspChest.lua")
-AddBtn(VisualToggleHolder, "ESP Boss", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/EspBoss.lua")
-
-AddSectionHeader(VisualToggleHolder, "Environment")
-AddBtn(VisualToggleHolder, "Fullbright", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/Fullbright.lua")
-AddBtn(VisualToggleHolder, "Remove Fog", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/RemoveFog.lua")
+AddSectionHeader(VisualPage, "Environment")
+AddBtn(VisualPage, "Fullbright", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/Fullbright.lua")
+AddBtn(VisualPage, "Remove Fog", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/RemoveFog.lua")
 
 -- CLIENT PAGE
-local ClientToggleHolder = Instance.new("Frame")
-ClientToggleHolder.Size = UDim2.new(1, 0, 0, 0)
-ClientToggleHolder.Position = UDim2.new(0, 0, 0, 10)
-ClientToggleHolder.BackgroundTransparency = 1
-ClientToggleHolder.Parent = CilentPage
-
-local ClientToggleLayout = Instance.new("UIListLayout", ClientToggleHolder)
-ClientToggleLayout.Padding = UDim.new(0, 6)
-
-AddSectionHeader(ClientToggleHolder, "Utilities")
-AddBtn(ClientToggleHolder, "Anti-AFK", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AntiAFK.lua")
-AddClickBtn(ClientToggleHolder, "Server Hop", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerHop.lua")
+AddSectionHeader(CilentPage, "Utilities")
+AddBtn(CilentPage, "Anti-AFK", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AntiAFK.lua")
+AddClickBtn(CilentPage, "Server Hop", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerHop.lua")
 
 -- TRADING PAGE
-local TradingToggleHolder = Instance.new("Frame")
-TradingToggleHolder.Size = UDim2.new(1, 0, 0, 0)
-TradingToggleHolder.Position = UDim2.new(0, 0, 0, 10)
-TradingToggleHolder.BackgroundTransparency = 1
-TradingToggleHolder.Parent = TradingPage
-
-local TradingToggleLayout = Instance.new("UIListLayout", TradingToggleHolder)
-TradingToggleLayout.Padding = UDim.new(0, 6)
-
-AddSectionHeader(TradingToggleHolder, "Tools")
-AddBtn(TradingToggleHolder, "Items Finder", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ItemsFinder.lua")
-AddBtn(TradingToggleHolder, "Trading value", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/TradingValue.lua")
+AddSectionHeader(TradingPage, "Tools")
+AddBtn(TradingPage, "Items Finder", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ItemsFinder.lua")
+AddBtn(TradingPage, "Trading value", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/TradingValue.lua")
 
 -- SETTING PAGE
-local SettingToggleHolder = Instance.new("Frame")
-SettingToggleHolder.Size = UDim2.new(1, 0, 0, 0)
-SettingToggleHolder.Position = UDim2.new(0, 0, 0, 10)
-SettingToggleHolder.BackgroundTransparency = 1
-SettingToggleHolder.Parent = SettingPage
-
-local SettingToggleLayout = Instance.new("UIListLayout", SettingToggleHolder)
-SettingToggleLayout.Padding = UDim.new(0, 6)
-
-AddSectionHeader(SettingToggleHolder, "Options")
-AddBtn(SettingToggleHolder, "Save config", "")
-AddLanguageDropdown(SettingToggleHolder)
+AddSectionHeader(SettingPage, "Options")
+AddBtn(SettingPage, "Save config", "")
+AddLanguageDropdown(SettingPage)
 
 -- ĐO FPS & NÚT R
 local sec, frames = 0, 0
