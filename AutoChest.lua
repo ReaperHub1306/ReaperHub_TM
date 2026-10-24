@@ -1,11 +1,11 @@
 -- ==========================================
--- REAPERHUB - AUTO CHEST MODULE (MOBILE FAST FARM)
+-- REAPERHUB - AUTO CHEST MODULE (STEALTH & EQUIP TOOL)
 -- ==========================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 
--- Biến kiểm soát trạng thái Auto Farm
+-- Control Auto Farm state
 _G.AutoChestEnabled = not _G.AutoChestEnabled
 
 if not _G.AutoChestEnabled then
@@ -19,7 +19,7 @@ end
 
 print("[ReaperHub] Auto Chest: ENABLED")
 
--- 1. KIỂM TRA NHÂN VẬT SLENDERMAN
+-- 1. CHECK IF STAND IS SLENDERMAN
 local function IsSlenderman()
     local trollData = LocalPlayer:FindFirstChild("trollge_data")
     if trollData then
@@ -31,7 +31,32 @@ local function IsSlenderman()
     return false
 end
 
--- 2. TÌM RƯƠNG GẦN NHẤT TRONG BÁN KÍNH 350 STUDS
+-- 2. AUTOMATICALLY EQUIP TELEPORT TOOL
+local function EquipTeleportTool()
+    local character = LocalPlayer.Character
+    if not character then return end
+
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    -- Check if already holding the tool
+    local currentTool = character:FindFirstChild("Teleport")
+    if currentTool then return true end
+
+    -- If not equipped, look in Backpack
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if backpack then
+        local tool = backpack:FindFirstChild("Teleport")
+        if tool then
+            humanoid:EquipTool(tool)
+            task.wait(0.1) -- Small delay to ensure equip animation finishes
+            return true
+        end
+    end
+    return false
+end
+
+-- 3. GET NEAREST CHEST WITHIN 350 STUDS
 local function GetNearestChest()
     local character = LocalPlayer.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
@@ -41,7 +66,7 @@ local function GetNearestChest()
     if not chestFolder then return nil end
 
     local nearestChest = nil
-    local shortestDistance = 350 -- Đã tăng bán kính lên 350 studs
+    local shortestDistance = 350 -- Radius set to 350 studs
 
     for _, object in ipairs(chestFolder:GetChildren()) do
         if string.find(object.Name, "Chest") then
@@ -65,7 +90,7 @@ local function GetNearestChest()
     return nearestChest
 end
 
--- 3. TẠO HIGHLIGHT OUTLINE MỤC TIÊU
+-- 4. HIGHLIGHT TARGET CHEST
 local function HighlightChest(chest)
     if not _G.CurrentChestHighlight then
         _G.CurrentChestHighlight = Instance.new("Highlight")
@@ -79,7 +104,7 @@ local function HighlightChest(chest)
     _G.CurrentChestHighlight.Parent = chest
 end
 
--- 4. DỊCH CHUYỂN SLENDERMAN
+-- 5. STEALTH TELEPORT LOGIC
 local function TeleportToPosition(targetPos)
     local character = LocalPlayer.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
@@ -93,19 +118,15 @@ local function TeleportToPosition(targetPos)
     hrp.CFrame = CFrame.new(stepPos + Vector3.new(0, 1, 0))
 end
 
--- 5. HÀM NHẶT RƯƠNG SIÊU TỐC CHO MOBILE (XỬ LÝ CẢ RƯƠNG BẤM GIỮ)
+-- 6. INTERACT CHEST (MOBILE PROXIMITY PROMPT)
 local function InteractChest(chest)
     if not chest then return end
-    
-    -- Tự động tìm ProximityPrompt bên trong Rương
     local prompt = chest:FindFirstChildWhichIsA("ProximityPrompt", true)
     
     if prompt then
-        -- Nếu Executor hỗ trợ hàm fireproximityprompt chuẩn
         if fireproximityprompt then
             fireproximityprompt(prompt)
         else
-            -- Phương pháp kích hoạt trực tiếp không bị mất Nút di chuyển Mobile
             pcall(function()
                 prompt:InputHoldBegin()
                 task.wait(prompt.HoldDuration > 0 and (prompt.HoldDuration + 0.05) or 0.05)
@@ -116,14 +137,14 @@ local function InteractChest(chest)
 end
 
 -- ==========================================
--- VÒNG LẶP AUTO FARM TỐC ĐỘ CAO
+-- MAIN AUTO FARM LOOP
 -- ==========================================
 task.spawn(function()
     while _G.AutoChestEnabled do
-        task.wait(0.15) -- Giảm trễ vòng lặp xuống 0.15s để tăng tốc độ farm
+        task.wait(0.25) -- Adjusted loop delay for stealth
 
         if not IsSlenderman() then
-            warn("[ReaperHub] Yêu cầu nhân vật Slenderman!")
+            warn("[ReaperHub] Slenderman character required!")
             _G.AutoChestEnabled = false
             if _G.CurrentChestHighlight then _G.CurrentChestHighlight:Destroy() end
             break
@@ -147,12 +168,13 @@ task.spawn(function()
                     local dist = (character.HumanoidRootPart.Position - chestPos).Magnitude
 
                     if dist > 8 then
+                        -- Equip tool before performing teleport
+                        EquipTeleportTool()
                         TeleportToPosition(chestPos)
-                        task.wait(0.3) -- Giảm thời gian chờ Teleport xuống 0.3s
+                        task.wait(0.45) -- Slightly safer cooldown between teleport steps
                     else
-                        -- Nhặt rương siêu tốc
                         InteractChest(targetChest)
-                        task.wait(0.1)
+                        task.wait(0.15)
                     end
                 end
             end
