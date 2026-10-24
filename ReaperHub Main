@@ -9,7 +9,7 @@ if CoreGui:FindFirstChild("ReaperHub_GUI") then
 end
 
 -- ==========================================
--- QUẢN LÝ CONFIG (LƯU & NẠP TẤT CẢ TRẠNG THÁI)
+-- QUẢN LÝ CONFIG (LƯU & NẠP TRẠNG THÁI + NGÔN NGỮ)
 -- ==========================================
 local ConfigFile = "ReaperHub_Config.json"
 _G.ReaperHubConfig = _G.ReaperHubConfig or { 
@@ -40,7 +40,47 @@ local function LoadConfig()
 end
 LoadConfig()
 
+-- BẢNG TỪ ĐIỂN ĐA NGÔN NGỮ
+local Translations = {
+    ["English"] = {
+        ["Main"] = "Main", ["visual"] = "Visual", ["Cilent"] = "Client", ["pvp"] = "PvP", ["trading"] = "Trading", ["setting"] = "Settings",
+        ["Information"] = "Information", ["Stats"] = "Stats", ["ESP"] = "ESP", ["Environment"] = "Environment", ["Utilities"] = "Utilities", ["Tools"] = "Tools", ["Options"] = "Options",
+        ["Ping stat"] = "Ping stat", ["Server time"] = "Server time", ["Chest stat"] = "Chest stat", ["ESP Chest"] = "ESP Chest", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Fullbright", ["Remove Fog"] = "Remove Fog", ["Anti-AFK"] = "Anti-AFK", ["Server Hop"] = "Server Hop", ["Items Finder"] = "Items Finder", ["Trading value"] = "Trading value", ["Save config"] = "Save config"
+    },
+    ["Tiếng Việt"] = {
+        ["Main"] = "Chính", ["visual"] = "Hình ảnh", ["Cilent"] = "Hệ thống", ["pvp"] = "Chiến đấu", ["trading"] = "Giao dịch", ["setting"] = "Cài đặt",
+        ["Information"] = "Thông tin", ["Stats"] = "Chỉ số", ["ESP"] = "Hiển thị ESP", ["Environment"] = "Môi trường", ["Utilities"] = "Tiện ích", ["Tools"] = "Công cụ", ["Options"] = "Tùy chọn",
+        ["Ping stat"] = "Bảng Ping", ["Server time"] = "Thời gian Server", ["Chest stat"] = "Thống kê Rương", ["ESP Chest"] = "ESP Rương", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Độ sáng tối đa", ["Remove Fog"] = "Xóa sương mù", ["Anti-AFK"] = "Chống AFK", ["Server Hop"] = "Đổi Server", ["Items Finder"] = "Tìm vật phẩm", ["Trading value"] = "Bảng giá Trade", ["Save config"] = "Lưu cấu hình"
+    }
+}
+
+local TranslatableLabels = {}
+
+local function RegisterTranslation(obj, key)
+    table.insert(TranslatableLabels, {obj = obj, key = key})
+    local currentLang = _G.ReaperHubConfig.Language or "English"
+    if Translations[currentLang] and Translations[currentLang][key] then
+        obj.Text = Translations[currentLang][key]
+    end
+end
+
+local function ApplyLanguage(lang)
+    _G.ReaperHubConfig.Language = lang
+    if _G.ReaperHubConfig.AutoSave then SaveConfig() end
+    
+    for _, item in ipairs(TranslatableLabels) do
+        if item.obj and item.obj.Parent then
+            local translated = Translations[lang] and Translations[lang][item.key]
+            if translated then
+                item.obj.Text = translated
+            end
+        end
+    end
+end
+
+-- ==========================================
 -- KHUNG GUI CHÍNH
+-- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ReaperHub_GUI"
 ScreenGui.ResetOnSpawn = false
@@ -89,7 +129,7 @@ local TabScroll = Instance.new("ScrollingFrame")
 TabScroll.Size = UDim2.new(1, -20, 0, 32)
 TabScroll.Position = UDim2.new(0, 10, 0, 35)
 TabScroll.BackgroundTransparency = 1
-TabScroll.CanvasSize = UDim2.new(0, 580, 0, 0)
+TabScroll.CanvasSize = UDim2.new(0, 500, 0, 0)
 TabScroll.ScrollBarThickness = 0
 TabScroll.Parent = MainFrame
 
@@ -105,19 +145,20 @@ PagesContainer.ClipsDescendants = true
 PagesContainer.Parent = MainFrame
 
 local tabs = {}
-local function CreateTab(name, isFirst)
+local function CreateTab(nameKey, isFirst)
     local TabBtn = Instance.new("TextButton")
-    TabBtn.Size = UDim2.new(0, 85, 1, 0)
-    TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(45, 45, 45) or Color3.fromRGB(25, 25, 25)
-    TabBtn.Text = name
-    TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+    TabBtn.Size = UDim2.new(0, 75, 1, 0) -- Thu nhỏ chiều rộng tab còn 75 để không bị đè chữ
+    TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(40, 40, 40) or Color3.fromRGB(22, 22, 22)
+    TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150) -- Màu chữ dịu mắt, dễ nhìn
     TabBtn.Font = Enum.Font.GothamBold
-    TabBtn.TextSize = 13
+    TabBtn.TextSize = 11 -- Thu nhỏ size chữ tab vừa vặn
     TabBtn.Parent = TabScroll
     Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 4)
     
+    RegisterTranslation(TabBtn, nameKey)
+    
     local TabStroke = Instance.new("UIStroke", TabBtn)
-    TabStroke.Color = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(60, 60, 60)
+    TabStroke.Color = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(50, 50, 50)
     TabStroke.Thickness = isFirst and 1.5 or 1
     
     local Page = Instance.new("ScrollingFrame")
@@ -147,13 +188,13 @@ for _, t in ipairs(tabs) do
     t.btn.Activated:Connect(function()
         for _, otherT in ipairs(tabs) do
             otherT.page.Visible = false
-            otherT.btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-            otherT.stroke.Color = Color3.fromRGB(60, 60, 60)
+            otherT.btn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+            otherT.stroke.Color = Color3.fromRGB(50, 50, 50)
             otherT.stroke.Thickness = 1
-            otherT.btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+            otherT.btn.TextColor3 = Color3.fromRGB(150, 150, 150)
         end
         t.page.Visible = true
-        t.btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        t.btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         t.stroke.Color = Color3.fromRGB(255, 255, 255)
         t.stroke.Thickness = 1.5
         t.btn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -178,21 +219,22 @@ local function GetNextOrder()
     return orderCounter
 end
 
-local function AddSectionHeader(parentContainer, titleText)
+local function AddSectionHeader(parentContainer, titleKey)
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, 0, 0, 22)
     lbl.BackgroundTransparency = 1
-    lbl.Text = titleText
-    lbl.TextColor3 = Color3.fromRGB(160, 160, 160)
+    lbl.TextColor3 = Color3.fromRGB(140, 140, 140)
     lbl.Font = Enum.Font.GothamBold
     lbl.TextSize = 13
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.LayoutOrder = GetNextOrder()
     lbl.Parent = parentContainer
+    
+    RegisterTranslation(lbl, titleKey)
     return lbl
 end
 
-local function AddBtn(parentContainer, btnName, rawUrl)
+local function AddBtn(parentContainer, btnNameKey, rawUrl)
     local Container = Instance.new("Frame")
     Container.Size = UDim2.new(1, 0, 0, 36)
     Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
@@ -207,12 +249,13 @@ local function AddBtn(parentContainer, btnName, rawUrl)
     TextLbl.Size = UDim2.new(1, -60, 1, 0)
     TextLbl.Position = UDim2.new(0, 10, 0, 0)
     TextLbl.BackgroundTransparency = 1
-    TextLbl.Text = btnName
     TextLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
     TextLbl.Font = Enum.Font.GothamMedium
     TextLbl.TextSize = 13
     TextLbl.TextXAlignment = Enum.TextXAlignment.Left
     TextLbl.Parent = Container
+
+    RegisterTranslation(TextLbl, btnNameKey)
 
     local SwitchBtn = Instance.new("TextButton")
     SwitchBtn.Size = UDim2.new(0, 44, 0, 22)
@@ -227,7 +270,7 @@ local function AddBtn(parentContainer, btnName, rawUrl)
     Knob.Parent = SwitchBtn
     Instance.new("UICorner", Knob).CornerRadius = UDim.new(1, 0)
 
-    local isOn = (btnName == "Save config") and _G.ReaperHubConfig.AutoSave or (_G.ReaperHubConfig.Toggles[btnName] or false)
+    local isOn = (btnNameKey == "Save config") and _G.ReaperHubConfig.AutoSave or (_G.ReaperHubConfig.Toggles[btnNameKey] or false)
 
     local function updateVisual(state)
         SwitchBtn.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
@@ -235,24 +278,24 @@ local function AddBtn(parentContainer, btnName, rawUrl)
     end
 
     updateVisual(isOn)
-    if isOn and btnName ~= "Save config" then RunRaw(rawUrl) end
+    if isOn and btnNameKey ~= "Save config" then RunRaw(rawUrl) end
 
     SwitchBtn.Activated:Connect(function()
         isOn = not isOn
         updateVisual(isOn)
 
-        if btnName == "Save config" then
+        if btnNameKey == "Save config" then
             _G.ReaperHubConfig.AutoSave = isOn
             SaveConfig()
         else
-            _G.ReaperHubConfig.Toggles[btnName] = isOn
+            _G.ReaperHubConfig.Toggles[btnNameKey] = isOn
             if _G.ReaperHubConfig.AutoSave then SaveConfig() end
             RunRaw(rawUrl)
         end
     end)
 end
 
-local function AddClickBtn(parentContainer, btnName, rawUrl)
+local function AddClickBtn(parentContainer, btnNameKey, rawUrl)
     local Container = Instance.new("Frame")
     Container.Size = UDim2.new(1, 0, 0, 36)
     Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
@@ -266,11 +309,12 @@ local function AddClickBtn(parentContainer, btnName, rawUrl)
     local ClickBtn = Instance.new("TextButton")
     ClickBtn.Size = UDim2.new(1, 0, 1, 0)
     ClickBtn.BackgroundTransparency = 1
-    ClickBtn.Text = btnName
     ClickBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
     ClickBtn.Font = Enum.Font.GothamMedium
     ClickBtn.TextSize = 13
     ClickBtn.Parent = Container
+
+    RegisterTranslation(ClickBtn, btnNameKey)
 
     ClickBtn.Activated:Connect(function()
         Container.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
@@ -346,12 +390,14 @@ local function AddLanguageDropdown(parentContainer)
             ArrowLbl.Text = ">"
             DropdownContainer:TweenSize(UDim2.new(1, 0, 0, 36), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
             
-            -- Cập nhật ngôn ngữ và tự lưu vào file cấu hình nếu AutoSave bật
-            _G.ReaperHubConfig.Language = lang
+            ApplyLanguage(lang)
             TitleLbl.Text = "Language: " .. lang
-            if _G.ReaperHubConfig.AutoSave then SaveConfig() end
             
-            RunRaw("https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/LanguageModule.lua")
+            for _, child in ipairs(OptionHolder:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.TextColor3 = (child.Text == lang) and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(200, 200, 200)
+                end
+            end
         end)
     end
 
@@ -363,7 +409,7 @@ local function AddLanguageDropdown(parentContainer)
 end
 
 -- ==========================================
--- XÂY DỰNG GIAO DIỆN CÁC TRANG (CÓ LayoutOrder ĐẢM BẢO KHÔNG BỊ LỆCH)
+-- GÁN NỘI DUNG CÁC TRANG
 -- ==========================================
 
 -- MAIN PAGE
@@ -460,6 +506,11 @@ AddBtn(TradingPage, "Trading value", "https://raw.githubusercontent.com/ReaperHu
 AddSectionHeader(SettingPage, "Options")
 AddBtn(SettingPage, "Save config", "")
 AddLanguageDropdown(SettingPage)
+
+-- ÁP DỤNG NGÔN NGỮ ĐÃ LƯU NGAY KHI VỪA TẢI XONG GUI
+if _G.ReaperHubConfig.Language then
+    ApplyLanguage(_G.ReaperHubConfig.Language)
+end
 
 -- Đo FPS & Nút R
 local sec, frames = 0, 0
