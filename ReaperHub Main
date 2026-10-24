@@ -43,14 +43,14 @@ LoadConfig()
 -- BẢNG TỪ ĐIỂN ĐA NGÔN NGỮ
 local Translations = {
     ["English"] = {
-        ["Main"] = "Main", ["visual"] = "Visual", ["Cilent"] = "Client", ["pvp"] = "PvP", ["trading"] = "Trading", ["setting"] = "Settings",
-        ["Information"] = "Information", ["Stats"] = "Stats", ["ESP"] = "ESP", ["Environment"] = "Environment", ["Utilities"] = "Utilities", ["Tools"] = "Tools", ["Options"] = "Options",
-        ["Ping stat"] = "Ping stat", ["Server time"] = "Server time", ["Chest stat"] = "Chest stat", ["ESP Chest"] = "ESP Chest", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Fullbright", ["Remove Fog"] = "Remove Fog", ["Anti-AFK"] = "Anti-AFK", ["Server Hop"] = "Server Hop", ["Items Finder"] = "Items Finder", ["Trading value"] = "Trading value", ["Save config"] = "Save config"
+        ["Main"] = "Main", ["visual"] = "Visual", ["Cilent"] = "Client", ["pvp"] = "PvP", ["farm"] = "Farm", ["trading"] = "Trading", ["setting"] = "Settings",
+        ["Information"] = "Information", ["Stats"] = "Stats", ["ESP"] = "ESP", ["Environment"] = "Environment", ["Utilities"] = "Utilities", ["Chest Farm"] = "Chest Farm", ["Tools"] = "Tools", ["Options"] = "Options",
+        ["Ping stat"] = "Ping stat", ["Server time"] = "Server time", ["Chest stat"] = "Chest stat", ["ESP Chest"] = "ESP Chest", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Fullbright", ["Remove Fog"] = "Remove Fog", ["Anti-AFK"] = "Anti-AFK", ["Server Hop"] = "Server Hop", ["Auto Chest"] = "Auto Chest", ["Items Finder"] = "Items Finder", ["Trading value"] = "Trading value", ["Save config"] = "Save config"
     },
     ["Tiếng Việt"] = {
-        ["Main"] = "Chính", ["visual"] = "Hình ảnh", ["Cilent"] = "Hệ thống", ["pvp"] = "Chiến đấu", ["trading"] = "Giao dịch", ["setting"] = "Cài đặt",
-        ["Information"] = "Thông tin", ["Stats"] = "Chỉ số", ["ESP"] = "Hiển thị ESP", ["Environment"] = "Môi trường", ["Utilities"] = "Tiện ích", ["Tools"] = "Công cụ", ["Options"] = "Tùy chọn",
-        ["Ping stat"] = "Bảng Ping", ["Server time"] = "Thời gian Server", ["Chest stat"] = "Thống kê Rương", ["ESP Chest"] = "ESP Rương", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Độ sáng tối đa", ["Remove Fog"] = "Xóa sương mù", ["Anti-AFK"] = "Chống AFK", ["Server Hop"] = "Đổi Server", ["Items Finder"] = "Tìm vật phẩm", ["Trading value"] = "Bảng giá Trade", ["Save config"] = "Lưu cấu hình"
+        ["Main"] = "Chính", ["visual"] = "Hình ảnh", ["Cilent"] = "Hệ thống", ["pvp"] = "Chiến đấu", ["farm"] = "Farm", ["trading"] = "Giao dịch", ["setting"] = "Cài đặt",
+        ["Information"] = "Thông tin", ["Stats"] = "Chỉ số", ["ESP"] = "Hiển thị ESP", ["Environment"] = "Môi trường", ["Utilities"] = "Tiện ích", ["Chest Farm"] = "Farm Rương", ["Tools"] = "Công cụ", ["Options"] = "Tùy chọn",
+        ["Ping stat"] = "Bảng Ping", ["Server time"] = "Thời gian Server", ["Chest stat"] = "Thống kê Rương", ["ESP Chest"] = "ESP Rương", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Độ sáng tối đa", ["Remove Fog"] = "Xóa sương mù", ["Anti-AFK"] = "Chống AFK", ["Server Hop"] = "Đổi Server", ["Auto Chest"] = "Tự động nhặt rương", ["Items Finder"] = "Tìm vật phẩm", ["Trading value"] = "Bảng giá Trade", ["Save config"] = "Lưu cấu hình"
     }
 }
 
@@ -129,7 +129,7 @@ local TabScroll = Instance.new("ScrollingFrame")
 TabScroll.Size = UDim2.new(1, -20, 0, 32)
 TabScroll.Position = UDim2.new(0, 10, 0, 35)
 TabScroll.BackgroundTransparency = 1
-TabScroll.CanvasSize = UDim2.new(0, 580, 0, 0)
+TabScroll.CanvasSize = UDim2.new(0, 650, 0, 0)
 TabScroll.ScrollBarThickness = 0
 TabScroll.Parent = MainFrame
 
@@ -148,7 +148,6 @@ local tabs = {}
 local function CreateTab(nameKey, isFirst)
     local TabBtn = Instance.new("TextButton")
     TabBtn.Size = UDim2.new(0, 85, 1, 0)
-    -- Bỏ UIStroke gây nhòe/chói chữ. Dùng màu sắc Đen - Trắng rõ nét
     TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(25, 25, 25)
     TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)
     TabBtn.Font = Enum.Font.GothamMedium
@@ -174,10 +173,12 @@ local function CreateTab(nameKey, isFirst)
     return Page
 end
 
+-- THỨ TỰ CÁC TAB (ĐÃ THÊM FARM Ở SAU PVP)
 local MainPage = CreateTab("Main", true)
 local VisualPage = CreateTab("visual", false)
 local CilentPage = CreateTab("Cilent", false)
 local PvPPage = CreateTab("pvp", false)
+local FarmPage = CreateTab("farm", false)
 local TradingPage = CreateTab("trading", false)
 local SettingPage = CreateTab("setting", false)
 
@@ -490,6 +491,10 @@ AddBtn(VisualPage, "Remove Fog", "https://raw.githubusercontent.com/ReaperHub130
 AddSectionHeader(CilentPage, "Utilities")
 AddBtn(CilentPage, "Anti-AFK", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AntiAFK.lua")
 AddClickBtn(CilentPage, "Server Hop", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerHop.lua")
+
+-- FARM PAGE (TAB MỚI THÊM)
+AddSectionHeader(FarmPage, "Chest Farm")
+AddBtn(FarmPage, "Auto Chest", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AutoChest.lua")
 
 -- TRADING PAGE
 AddSectionHeader(TradingPage, "Tools")
