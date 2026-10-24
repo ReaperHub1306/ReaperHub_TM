@@ -9,7 +9,7 @@ if CoreGui:FindFirstChild("ReaperHub_GUI") then
 end
 
 -- ==========================================
--- QUẢN LÝ CONFIG (LƯU & NẠP TRẠNG THÁI + NGÔN NGỮ)
+-- QUẢN LÝ CONFIG
 -- ==========================================
 local ConfigFile = "ReaperHub_Config.json"
 _G.ReaperHubConfig = _G.ReaperHubConfig or { 
@@ -129,13 +129,13 @@ local TabScroll = Instance.new("ScrollingFrame")
 TabScroll.Size = UDim2.new(1, -20, 0, 32)
 TabScroll.Position = UDim2.new(0, 10, 0, 35)
 TabScroll.BackgroundTransparency = 1
-TabScroll.CanvasSize = UDim2.new(0, 500, 0, 0)
+TabScroll.CanvasSize = UDim2.new(0, 600, 0, 0)
 TabScroll.ScrollBarThickness = 0
 TabScroll.Parent = MainFrame
 
 local TabListLayout = Instance.new("UIListLayout", TabScroll)
 TabListLayout.FillDirection = Enum.FillDirection.Horizontal
-TabListLayout.Padding = UDim.new(0, 6)
+TabListLayout.Padding = UDim.new(0, 8)
 
 local PagesContainer = Instance.new("Frame")
 PagesContainer.Size = UDim2.new(1, -20, 1, -80)
@@ -147,18 +147,24 @@ PagesContainer.Parent = MainFrame
 local tabs = {}
 local function CreateTab(nameKey, isFirst)
     local TabBtn = Instance.new("TextButton")
-    TabBtn.Size = UDim2.new(0, 75, 1, 0) -- Thu nhỏ chiều rộng tab còn 75 để không bị đè chữ
-    TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(40, 40, 40) or Color3.fromRGB(22, 22, 22)
-    TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150) -- Màu chữ dịu mắt, dễ nhìn
-    TabBtn.Font = Enum.Font.GothamBold
-    TabBtn.TextSize = 11 -- Thu nhỏ size chữ tab vừa vặn
+    TabBtn.Size = UDim2.new(0, 0, 1, 0)
+    TabBtn.AutomaticSize = Enum.AutomaticSize.X -- Tự động co giãn kích thước theo chiều ngang
+    TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(45, 45, 45) or Color3.fromRGB(25, 25, 25)
+    TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(190, 190, 190) -- Màu chữ dịu mắt, dễ nhìn
+    TabBtn.Font = Enum.Font.GothamMedium
+    TabBtn.TextSize = 13
     TabBtn.Parent = TabScroll
+    
+    local TabPadding = Instance.new("UIPadding", TabBtn)
+    TabPadding.PaddingLeft = UDim.new(0, 14)
+    TabPadding.PaddingRight = UDim.new(0, 14)
+    
     Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 4)
     
     RegisterTranslation(TabBtn, nameKey)
     
     local TabStroke = Instance.new("UIStroke", TabBtn)
-    TabStroke.Color = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(50, 50, 50)
+    TabStroke.Color = isFirst and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
     TabStroke.Thickness = isFirst and 1.5 or 1
     
     local Page = Instance.new("ScrollingFrame")
@@ -188,14 +194,14 @@ for _, t in ipairs(tabs) do
     t.btn.Activated:Connect(function()
         for _, otherT in ipairs(tabs) do
             otherT.page.Visible = false
-            otherT.btn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+            otherT.btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
             otherT.stroke.Color = Color3.fromRGB(50, 50, 50)
             otherT.stroke.Thickness = 1
-            otherT.btn.TextColor3 = Color3.fromRGB(150, 150, 150)
+            otherT.btn.TextColor3 = Color3.fromRGB(190, 190, 190)
         end
         t.page.Visible = true
-        t.btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        t.stroke.Color = Color3.fromRGB(255, 255, 255)
+        t.btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        t.stroke.Color = Color3.fromRGB(0, 170, 255)
         t.stroke.Thickness = 1.5
         t.btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
@@ -223,7 +229,7 @@ local function AddSectionHeader(parentContainer, titleKey)
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, 0, 0, 22)
     lbl.BackgroundTransparency = 1
-    lbl.TextColor3 = Color3.fromRGB(140, 140, 140)
+    lbl.TextColor3 = Color3.fromRGB(150, 150, 150)
     lbl.Font = Enum.Font.GothamBold
     lbl.TextSize = 13
     lbl.TextXAlignment = Enum.TextXAlignment.Left
