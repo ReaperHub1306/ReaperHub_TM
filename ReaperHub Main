@@ -79,7 +79,7 @@ local function ApplyLanguage(lang)
 end
 
 -- ==========================================
--- KHUNG GUI CHÍNH
+-- KHUNG GUI CHÍNH (ĐEN TRẮNG HIỆN ĐẠI)
 -- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ReaperHub_GUI"
@@ -129,13 +129,13 @@ local TabScroll = Instance.new("ScrollingFrame")
 TabScroll.Size = UDim2.new(1, -20, 0, 32)
 TabScroll.Position = UDim2.new(0, 10, 0, 35)
 TabScroll.BackgroundTransparency = 1
-TabScroll.CanvasSize = UDim2.new(0, 600, 0, 0)
+TabScroll.CanvasSize = UDim2.new(0, 580, 0, 0)
 TabScroll.ScrollBarThickness = 0
 TabScroll.Parent = MainFrame
 
 local TabListLayout = Instance.new("UIListLayout", TabScroll)
 TabListLayout.FillDirection = Enum.FillDirection.Horizontal
-TabListLayout.Padding = UDim.new(0, 8)
+TabListLayout.Padding = UDim.new(0, 6)
 
 local PagesContainer = Instance.new("Frame")
 PagesContainer.Size = UDim2.new(1, -20, 1, -80)
@@ -147,26 +147,19 @@ PagesContainer.Parent = MainFrame
 local tabs = {}
 local function CreateTab(nameKey, isFirst)
     local TabBtn = Instance.new("TextButton")
-    TabBtn.Size = UDim2.new(0, 0, 1, 0)
-    TabBtn.AutomaticSize = Enum.AutomaticSize.X
-    -- Tab chọn: Nền xám vừa 35, chữ xanh cyan ngọc 0, 170, 255 để không bị chói
-    -- Tab chưa chọn: Nền tối 22, chữ xám dịu 160
-    TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(35, 35, 35) or Color3.fromRGB(22, 22, 22)
-    TabBtn.TextColor3 = isFirst and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(160, 160, 160)
+    TabBtn.Size = UDim2.new(0, 85, 1, 0)
+    -- Đen trắng chuẩn: Active = Nền xám 45 + Chữ Trắng, Inactive = Nền xám 25 + Chữ xám sáng 170
+    TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(45, 45, 45) or Color3.fromRGB(25, 25, 25)
+    TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(170, 170, 170)
     TabBtn.Font = Enum.Font.GothamMedium
     TabBtn.TextSize = 13
     TabBtn.Parent = TabScroll
-    
-    local TabPadding = Instance.new("UIPadding", TabBtn)
-    TabPadding.PaddingLeft = UDim.new(0, 14)
-    TabPadding.PaddingRight = UDim.new(0, 14)
-    
     Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 4)
     
     RegisterTranslation(TabBtn, nameKey)
     
     local TabStroke = Instance.new("UIStroke", TabBtn)
-    TabStroke.Color = isFirst and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(45, 45, 45)
+    TabStroke.Color = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(60, 60, 60)
     TabStroke.Thickness = isFirst and 1.5 or 1
     
     local Page = Instance.new("ScrollingFrame")
@@ -196,16 +189,16 @@ for _, t in ipairs(tabs) do
     t.btn.Activated:Connect(function()
         for _, otherT in ipairs(tabs) do
             otherT.page.Visible = false
-            otherT.btn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-            otherT.stroke.Color = Color3.fromRGB(45, 45, 45)
+            otherT.btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            otherT.stroke.Color = Color3.fromRGB(60, 60, 60)
             otherT.stroke.Thickness = 1
-            otherT.btn.TextColor3 = Color3.fromRGB(160, 160, 160)
+            otherT.btn.TextColor3 = Color3.fromRGB(170, 170, 170)
         end
         t.page.Visible = true
-        t.btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        t.stroke.Color = Color3.fromRGB(0, 170, 255)
+        t.btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        t.stroke.Color = Color3.fromRGB(255, 255, 255)
         t.stroke.Thickness = 1.5
-        t.btn.TextColor3 = Color3.fromRGB(0, 170, 255) -- Màu chữ nổi bật nét mịn, không bị lóa trắng!
+        t.btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
 end
 
@@ -281,7 +274,9 @@ local function AddBtn(parentContainer, btnNameKey, rawUrl)
     local isOn = (btnNameKey == "Save config") and _G.ReaperHubConfig.AutoSave or (_G.ReaperHubConfig.Toggles[btnNameKey] or false)
 
     local function updateVisual(state)
-        SwitchBtn.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
+        -- Công tắc ON = Màu trắng xám sáng (220), OFF = Màu tối (50)
+        SwitchBtn.BackgroundColor3 = state and Color3.fromRGB(200, 200, 200) or Color3.fromRGB(50, 50, 50)
+        Knob.BackgroundColor3 = state and Color3.fromRGB(20, 20, 20) or Color3.fromRGB(220, 220, 220)
         Knob.Position = state and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
     end
 
@@ -325,7 +320,7 @@ local function AddClickBtn(parentContainer, btnNameKey, rawUrl)
     RegisterTranslation(ClickBtn, btnNameKey)
 
     ClickBtn.Activated:Connect(function()
-        Container.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+        Container.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         task.delay(0.15, function() Container.BackgroundColor3 = Color3.fromRGB(28, 28, 28) end)
         RunRaw(rawUrl)
     end)
@@ -387,7 +382,7 @@ local function AddLanguageDropdown(parentContainer)
         OptionBtn.Position = UDim2.new(0, 6, 0, 0)
         OptionBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
         OptionBtn.Text = lang
-        OptionBtn.TextColor3 = (_G.ReaperHubConfig.Language == lang) and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(200, 200, 200)
+        OptionBtn.TextColor3 = (_G.ReaperHubConfig.Language == lang) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
         OptionBtn.Font = Enum.Font.GothamMedium
         OptionBtn.TextSize = 13
         OptionBtn.Parent = OptionHolder
@@ -403,7 +398,7 @@ local function AddLanguageDropdown(parentContainer)
             
             for _, child in ipairs(OptionHolder:GetChildren()) do
                 if child:IsA("TextButton") then
-                    child.TextColor3 = (child.Text == lang) and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(200, 200, 200)
+                    child.TextColor3 = (child.Text == lang) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
                 end
             end
         end)
