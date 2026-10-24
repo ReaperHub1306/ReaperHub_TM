@@ -148,9 +148,11 @@ local tabs = {}
 local function CreateTab(nameKey, isFirst)
     local TabBtn = Instance.new("TextButton")
     TabBtn.Size = UDim2.new(0, 0, 1, 0)
-    TabBtn.AutomaticSize = Enum.AutomaticSize.X -- Tự động co giãn kích thước theo chiều ngang
-    TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(45, 45, 45) or Color3.fromRGB(25, 25, 25)
-    TabBtn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(190, 190, 190) -- Màu chữ dịu mắt, dễ nhìn
+    TabBtn.AutomaticSize = Enum.AutomaticSize.X
+    -- Tab chọn: Nền xám vừa 35, chữ xanh cyan ngọc 0, 170, 255 để không bị chói
+    -- Tab chưa chọn: Nền tối 22, chữ xám dịu 160
+    TabBtn.BackgroundColor3 = isFirst and Color3.fromRGB(35, 35, 35) or Color3.fromRGB(22, 22, 22)
+    TabBtn.TextColor3 = isFirst and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(160, 160, 160)
     TabBtn.Font = Enum.Font.GothamMedium
     TabBtn.TextSize = 13
     TabBtn.Parent = TabScroll
@@ -164,7 +166,7 @@ local function CreateTab(nameKey, isFirst)
     RegisterTranslation(TabBtn, nameKey)
     
     local TabStroke = Instance.new("UIStroke", TabBtn)
-    TabStroke.Color = isFirst and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
+    TabStroke.Color = isFirst and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(45, 45, 45)
     TabStroke.Thickness = isFirst and 1.5 or 1
     
     local Page = Instance.new("ScrollingFrame")
@@ -194,16 +196,16 @@ for _, t in ipairs(tabs) do
     t.btn.Activated:Connect(function()
         for _, otherT in ipairs(tabs) do
             otherT.page.Visible = false
-            otherT.btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-            otherT.stroke.Color = Color3.fromRGB(50, 50, 50)
+            otherT.btn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+            otherT.stroke.Color = Color3.fromRGB(45, 45, 45)
             otherT.stroke.Thickness = 1
-            otherT.btn.TextColor3 = Color3.fromRGB(190, 190, 190)
+            otherT.btn.TextColor3 = Color3.fromRGB(160, 160, 160)
         end
         t.page.Visible = true
-        t.btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        t.btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
         t.stroke.Color = Color3.fromRGB(0, 170, 255)
         t.stroke.Thickness = 1.5
-        t.btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        t.btn.TextColor3 = Color3.fromRGB(0, 170, 255) -- Màu chữ nổi bật nét mịn, không bị lóa trắng!
     end)
 end
 
