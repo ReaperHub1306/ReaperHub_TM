@@ -46,12 +46,10 @@ for index, data in ipairs(trollConfig) do
     CircleBtn.Size = UDim2.new(0, btnSize, 0, btnSize)
     CircleBtn.Position = UDim2.new(data.pos.x or 0.8, 0, data.pos.y or (0.3 + index * 0.15), 0)
     
-    -- SỬA MÀU SẮC CHO DỄ NHÌN, KHÔNG BỊ CHÓI
     CircleBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     CircleBtn.BackgroundTransparency = 0.25
     CircleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     
-    -- Hiển thị chữ tùy chỉnh hoặc tên tool rút gọn
     local labelTxt = data.displayText
     if not labelTxt or labelTxt == "" then
         labelTxt = (data.tool and data.tool ~= "") and string.sub(data.tool, 1, 4) or ("S" .. index)
@@ -69,7 +67,6 @@ for index, data in ipairs(trollConfig) do
     Stroke.Transparency = 0.3
     Stroke.Thickness = 1.8
 
-    -- Kéo thả định vị trí nút
     local dragging = false
     local dragStart, startPos
 
@@ -107,7 +104,6 @@ for index, data in ipairs(trollConfig) do
         end
     end)
 
-    -- Kích hoạt Skill/Tool khi bấm
     CircleBtn.Activated:Connect(function()
         if _G.ReaperHub_MoveMode then return end
         if data.tool and data.tool ~= "" then
