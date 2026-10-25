@@ -216,18 +216,17 @@ local function GetNextOrder()
     return orderCounter
 end
 
-local function AddSectionHeader(parentContainer, titleKey)
+local function AddSectionHeader(parentContainer, titleText)
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, 0, 0, 22)
     lbl.BackgroundTransparency = 1
+    lbl.Text = titleText
     lbl.TextColor3 = Color3.fromRGB(150, 150, 150)
     lbl.Font = Enum.Font.GothamBold
     lbl.TextSize = 13
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.LayoutOrder = GetNextOrder()
     lbl.Parent = parentContainer
-    
-    RegisterTranslation(lbl, titleKey)
     return lbl
 end
 
@@ -515,15 +514,13 @@ AddBtn(FarmPage, "Auto Chest", "https://raw.githubusercontent.com/ReaperHub1306/
 -- ==========================================
 AddSectionHeader(PvPPage, "button skill")
 
--- Nút Bật/Tắt hệ thống Custom Skill Buttons
 AddBtn(PvPPage, "Enable Buttons", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/SkillButtons.lua")
 
--- Hiển thị tên nhân vật Troll hiện tại
 local currentTrollName = "???"
 pcall(function() currentTrollName = game:GetService("Players").LocalPlayer.trollge_data.troll_stand.Value end)
 AddSectionHeader(PvPPage, "Troll_User: " .. currentTrollName)
 
--- Nút Bật/Tắt chế độ kéo thả Move Button
+-- Nút Bật/Tắt Move Button
 local moveBtnContainer = Instance.new("Frame")
 moveBtnContainer.Size = UDim2.new(1, 0, 0, 36)
 moveBtnContainer.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
@@ -565,7 +562,7 @@ moveSwitch.Activated:Connect(function()
     moveKnob.Position = _G.ReaperHub_MoveMode and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
 end)
 
--- Hàm tạo hàng cấu hình cho từng Button Skill và chọn Tool trong Balo
+-- Hàm tạo hàng quản lý nút skill và gán tool từ balo
 local function CreateButtonSettingItem(parent, index)
     local Container = Instance.new("Frame")
     Container.Size = UDim2.new(1, 0, 0, 40)
@@ -585,7 +582,6 @@ local function CreateButtonSettingItem(parent, index)
     NameLbl.TextXAlignment = Enum.TextXAlignment.Left
     NameLbl.Parent = Container
 
-    -- Lấy tên tool đã lưu trước đó nếu có
     local troll = currentTrollName
     local savedToolName = "tool >"
     pcall(function()
@@ -606,7 +602,6 @@ local function CreateButtonSettingItem(parent, index)
     ToolSelectBtn.Parent = Container
     Instance.new("UICorner", ToolSelectBtn).CornerRadius = UDim.new(0, 4)
 
-    -- Bấm để quét item trong Balo gán vào phím
     ToolSelectBtn.Activated:Connect(function()
         local lp = game:GetService("Players").LocalPlayer
         local backpack = lp:FindFirstChild("Backpack")
@@ -633,12 +628,12 @@ local function CreateButtonSettingItem(parent, index)
         if foundToolName ~= "" then
             _G.ReaperHubConfig.SkillButtons = _G.ReaperHubConfig.SkillButtons or {}
             _G.ReaperHubConfig.SkillButtons[troll] = _G.ReaperHubConfig.SkillButtons[troll] or {
-                {name = "S1", tool = "", pos = {x = 0.85, y = 0.3}},
-                {name = "S2", tool = "", pos = {x = 0.85, y = 0.45}}
+                {name = "S1", tool = "", pos = {x = 0.8, y = 0.4}},
+                {name = "S2", tool = "", pos = {x = 0.8, y = 0.55}}
             }
             
             if not _G.ReaperHubConfig.SkillButtons[troll][index] then
-                table.insert(_G.ReaperHubConfig.SkillButtons[troll], {name = "S" .. index, tool = "", pos = {x = 0.85, y = 0.3 + (index * 0.15)}})
+                table.insert(_G.ReaperHubConfig.SkillButtons[troll], {name = "S" .. index, tool = "", pos = {x = 0.8, y = 0.3 + (index * 0.15)}})
             end
 
             _G.ReaperHubConfig.SkillButtons[troll][index].tool = foundToolName
@@ -651,7 +646,6 @@ local function CreateButtonSettingItem(parent, index)
     end)
 end
 
--- Tạo sẵn 2 slot nút tùy chỉnh mẫu trong Tab PvP
 CreateButtonSettingItem(PvPPage, 1)
 CreateButtonSettingItem(PvPPage, 2)
 
@@ -665,12 +659,10 @@ AddSectionHeader(SettingPage, "Options")
 AddBtn(SettingPage, "Save config", "")
 AddLanguageDropdown(SettingPage)
 
--- ÁP DỤNG NGÔN NGỮ ĐÃ LƯU NGAY KHI VỪA TẢI XONG GUI
 if _G.ReaperHubConfig.Language then
     ApplyLanguage(_G.ReaperHubConfig.Language)
 end
 
--- Đo FPS & Nút R
 local sec, frames = 0, 0
 RunService.RenderStepped:Connect(function(dt)
     sec = sec + dt
