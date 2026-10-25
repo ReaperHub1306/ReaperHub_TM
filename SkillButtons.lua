@@ -6,7 +6,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Xóa UI nút cũ nếu đã tồn tại
+-- Xóa ScreenGui nút cũ nếu đã tồn tại
 if CoreGui:FindFirstChild("ReaperHub_SkillButtons") then
     CoreGui.ReaperHub_SkillButtons:Destroy()
 end
@@ -46,13 +46,13 @@ local trollConfig = _G.ReaperHubConfig.SkillButtons[currentTroll]
 for index, data in ipairs(trollConfig) do
     local CircleBtn = Instance.new("TextButton")
     CircleBtn.Name = "SkillBtn_" .. index
-    CircleBtn.Size = UDim2.new(0, 52, 0, 52)
+    CircleBtn.Size = UDim2.new(0, 58, 0, 58) -- Tăng kích thước nút tròn chút cho dễ bấm trên mobile
     CircleBtn.Position = UDim2.new(data.pos.x or 0.8, 0, data.pos.y or (0.3 + index * 0.15), 0)
     CircleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     CircleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     CircleBtn.Text = (data.tool and data.tool ~= "") and string.sub(data.tool, 1, 4) or ("S" .. index)
     CircleBtn.Font = Enum.Font.GothamBold
-    CircleBtn.TextSize = 11
+    CircleBtn.TextSize = 12
     CircleBtn.Active = true
     CircleBtn.Parent = ScreenGui
 
@@ -78,7 +78,15 @@ for index, data in ipairs(trollConfig) do
 
     CircleBtn.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
+            if dragging then
+                dragging = false
+                -- TỰ ĐỘNG LƯU VỊ TRÍ KHI KÉO THẢ XONG
+                data.pos.x = CircleBtn.Position.X.Scale
+                data.pos.y = CircleBtn.Position.Y.Scale
+                if _G.ReaperHub_SaveConfig then
+                    _G.ReaperHub_SaveConfig()
+                end
+            end
         end
     end)
 
@@ -90,8 +98,6 @@ for index, data in ipairs(trollConfig) do
             local newY = math.clamp((startPos.Y.Scale * parentSize.Y + startPos.Y.Offset + delta.Y) / parentSize.Y, 0, 0.85)
             
             CircleBtn.Position = UDim2.new(newX, 0, newY, 0)
-            data.pos.x = newX
-            data.pos.y = newY
         end
     end)
 
@@ -103,15 +109,13 @@ for index, data in ipairs(trollConfig) do
             local backpack = LocalPlayer:FindFirstChild("Backpack")
             if character and backpack then
                 local humanoid = character:FindFirstChildOfClass("Humanoid")
-                -- Kiểm tra xem tool đang ở trong Balo hay đang cầm trên tay
                 local tool = character:FindFirstChild(data.tool) or backpack:FindFirstChild(data.tool)
                 
                 if tool and humanoid then
                     if tool.Parent == backpack then
                         humanoid:EquipTool(tool)
-                        task.wait(0.05) -- Đợi tích tắc để trang bị xong
+                        task.wait(0.05)
                     end
-                    -- Kích hoạt chiêu thức trực tiếp (Giống như click chuột trái/chạm để tung skill)
                     if tool:IsA("Tool") then
                         pcall(function()
                             tool:Activate()
