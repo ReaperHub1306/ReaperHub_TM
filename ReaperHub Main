@@ -27,7 +27,6 @@ local function SaveConfig()
         end
     end)
 end
--- Đưa hàm Save ra biến toàn cục để module ngoài gọi được
 _G.ReaperHub_SaveConfig = SaveConfig
 
 local function LoadConfig()
@@ -46,17 +45,17 @@ local function LoadConfig()
 end
 LoadConfig()
 
--- BẢNG TỪ ĐIỂN ĐA NGÔN NGỮ
+-- BẢNG TỪ ĐIỂN ĐA NGÔN NGỮ (BỔ SUNG CÁC KEY MỚI TRÁNH LỖI LABEL)
 local Translations = {
     ["English"] = {
         ["Main"] = "Main", ["visual"] = "Visual", ["Cilent"] = "Client", ["pvp"] = "PvP", ["farm"] = "Farm", ["trading"] = "Trading", ["setting"] = "Settings",
         ["Information"] = "Information", ["Stats"] = "Stats", ["ESP"] = "ESP", ["Environment"] = "Environment", ["Utilities"] = "Utilities", ["Chest Farm"] = "Chest Farm", ["Tools"] = "Tools", ["Options"] = "Options",
-        ["Ping stat"] = "Ping stat", ["Server time"] = "Server time", ["Chest stat"] = "Chest stat", ["ESP Chest"] = "ESP Chest", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Fullbright", ["Remove Fog"] = "Remove Fog", ["Anti-AFK"] = "Anti-AFK", ["Server Hop"] = "Server Hop", ["Auto Chest"] = "Auto Chest", ["Items Finder"] = "Items Finder", ["Trading value"] = "Trading value", ["Save config"] = "Save config"
+        ["Ping stat"] = "Ping stat", ["Server time"] = "Server time", ["Chest stat"] = "Chest stat", ["ESP Chest"] = "ESP Chest", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Fullbright", ["Remove Fog"] = "Remove Fog", ["Anti-AFK"] = "Anti-AFK", ["Server Hop"] = "Server Hop", ["Auto Chest"] = "Auto Chest", ["Items Finder"] = "Items Finder", ["Trading value"] = "Trading value", ["Save config"] = "Save config", ["Enable Buttons"] = "Enable Buttons"
     },
     ["Tiếng Việt"] = {
         ["Main"] = "Chính", ["visual"] = "Hình ảnh", ["Cilent"] = "Hệ thống", ["pvp"] = "Chiến đấu", ["farm"] = "Farm", ["trading"] = "Giao dịch", ["setting"] = "Cài đặt",
         ["Information"] = "Thông tin", ["Stats"] = "Chỉ số", ["ESP"] = "Hiển thị ESP", ["Environment"] = "Môi trường", ["Utilities"] = "Tiện ích", ["Chest Farm"] = "Farm Rương", ["Tools"] = "Công cụ", ["Options"] = "Tùy chọn",
-        ["Ping stat"] = "Bảng Ping", ["Server time"] = "Thời gian Server", ["Chest stat"] = "Thống kê Rương", ["ESP Chest"] = "ESP Rương", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Độ sáng tối đa", ["Remove Fog"] = "Xóa sương mù", ["Anti-AFK"] = "Chống AFK", ["Server Hop"] = "Đổi Server", ["Auto Chest"] = "Tự động nhặt rương", ["Items Finder"] = "Tìm vật phẩm", ["Trading value"] = "Bảng giá Trade", ["Save config"] = "Lưu cấu hình"
+        ["Ping stat"] = "Bảng Ping", ["Server time"] = "Thời gian Server", ["Chest stat"] = "Thống kê Rương", ["ESP Chest"] = "ESP Rương", ["ESP Boss"] = "ESP Boss", ["Fullbright"] = "Độ sáng tối đa", ["Remove Fog"] = "Xóa sương mù", ["Anti-AFK"] = "Chống AFK", ["Server Hop"] = "Đổi Server", ["Auto Chest"] = "Tự động nhặt rương", ["Items Finder"] = "Tìm vật phẩm", ["Trading value"] = "Bảng giá Trade", ["Save config"] = "Lưu cấu hình", ["Enable Buttons"] = "Bật nút kĩ năng"
     }
 }
 
@@ -67,6 +66,8 @@ local function RegisterTranslation(obj, key)
     local currentLang = _G.ReaperHubConfig.Language or "English"
     if Translations[currentLang] and Translations[currentLang][key] then
         obj.Text = Translations[currentLang][key]
+    else
+        obj.Text = key
     end
 end
 
@@ -512,13 +513,13 @@ AddSectionHeader(FarmPage, "Chest Farm")
 AddBtn(FarmPage, "Auto Chest", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AutoChest.lua")
 
 -- ==========================================
--- PVP PAGE (CUSTOM SKILL BUTTONS MANAGER - DYNAMIC)
+-- PVP PAGE (CUSTOM SKILL BUTTONS - DROPDOWN SELECTION)
 -- ==========================================
 AddSectionHeader(PvPPage, "button skill")
 
 AddBtn(PvPPage, "Enable Buttons", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/SkillButtons.lua")
 
-local currentTrollName = "???"
+local currentTrollName = "Default"
 pcall(function() currentTrollName = tostring(game:GetService("Players").LocalPlayer.trollge_data.troll_stand.Value) end)
 AddSectionHeader(PvPPage, "Troll_User: " .. currentTrollName)
 
@@ -582,7 +583,6 @@ AddButtonText.Font = Enum.Font.GothamMedium
 AddButtonText.TextSize = 13
 AddButtonText.Parent = AddButtonContainer
 
--- Container chứa danh sách các nút skill để tự động làm mới (Refresh) khi Thêm hoặc Xóa
 local SkillListContainer = Instance.new("Frame")
 SkillListContainer.Size = UDim2.new(1, 0, 0, 0)
 SkillListContainer.BackgroundTransparency = 1
@@ -593,12 +593,33 @@ local SkillListLayout = Instance.new("UIListLayout", SkillListContainer)
 SkillListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 SkillListLayout.Padding = UDim.new(0, 6)
 
-local function RefreshSkillMenuList()
-    -- Xóa các dòng cũ
-    for _, child in ipairs(SkillListContainer:GetChildren()) do
-        if child:IsA("Frame") then
-            child:Destroy()
+-- Hàm quét danh sách các Tool có trong Balo & Nhân vật
+local function GetAvailableTools()
+    local toolList = {}
+    local lp = game:GetService("Players").LocalPlayer
+    local backpack = lp:FindFirstChild("Backpack")
+    local character = lp.Character
+
+    if backpack then
+        for _, item in ipairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and not table.find(toolList, item.Name) then
+                table.insert(toolList, item.Name)
+            end
         end
+    end
+    if character then
+        for _, item in ipairs(character:GetChildren()) do
+            if item:IsA("Tool") and not table.find(toolList, item.Name) then
+                table.insert(toolList, item.Name)
+            end
+        end
+    end
+    return toolList
+end
+
+local function RefreshSkillMenuList()
+    for _, child in ipairs(SkillListContainer:GetChildren()) do
+        if child:IsA("Frame") then child:Destroy() end
     end
 
     local troll = currentTrollName
@@ -609,18 +630,24 @@ local function RefreshSkillMenuList()
     }
 
     local listData = _G.ReaperHubConfig.SkillButtons[troll]
-    SkillListContainer.Size = UDim2.new(1, 0, 0, #listData * 46)
 
     for index, data in ipairs(listData) do
         local Container = Instance.new("Frame")
         Container.Size = UDim2.new(1, 0, 0, 40)
         Container.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+        Container.ClipsDescendants = true
         Container.LayoutOrder = index
         Container.Parent = SkillListContainer
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 4)
+        Instance.new("UIStroke", Container).Color = Color3.fromRGB(50, 50, 50)
+
+        local HeaderFrame = Instance.new("Frame")
+        HeaderFrame.Size = UDim2.new(1, 0, 0, 40)
+        HeaderFrame.BackgroundTransparency = 1
+        HeaderFrame.Parent = Container
 
         local NameLbl = Instance.new("TextLabel")
-        NameLbl.Size = UDim2.new(0.3, 0, 1, 0)
+        NameLbl.Size = UDim2.new(0.28, 0, 1, 0)
         NameLbl.Position = UDim2.new(0, 10, 0, 0)
         NameLbl.BackgroundTransparency = 1
         NameLbl.Text = "button " .. index
@@ -628,59 +655,22 @@ local function RefreshSkillMenuList()
         NameLbl.Font = Enum.Font.GothamMedium
         NameLbl.TextSize = 13
         NameLbl.TextXAlignment = Enum.TextXAlignment.Left
-        NameLbl.Parent = Container
+        NameLbl.Parent = HeaderFrame
 
-        -- Nút chọn Tool trong Balo (tăng kích thước to rộng hơn bên cạnh để dễ bấm)
-        local savedToolName = (data.tool and data.tool ~= "") and data.tool or "tool >"
+        -- Ô DROPDOWN CHỌN TOOL (THẢ XUỐNG SỔ DANH SÁCH TOOL)
+        local savedToolName = (data.tool and data.tool ~= "") and data.tool or "Select Tool >"
         local ToolSelectBtn = Instance.new("TextButton")
-        ToolSelectBtn.Size = UDim2.new(0.48, -5, 0, 28)
-        ToolSelectBtn.Position = UDim2.new(0.32, 0, 0.5, -14)
+        ToolSelectBtn.Size = UDim2.new(0.5, -5, 0, 28)
+        ToolSelectBtn.Position = UDim2.new(0.3, 0, 0.5, -14)
         ToolSelectBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        ToolSelectBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+        ToolSelectBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
         ToolSelectBtn.Font = Enum.Font.GothamMedium
         ToolSelectBtn.TextSize = 11
         ToolSelectBtn.Text = savedToolName
-        ToolSelectBtn.Parent = Container
+        ToolSelectBtn.Parent = HeaderFrame
         Instance.new("UICorner", ToolSelectBtn).CornerRadius = UDim.new(0, 4)
 
-        ToolSelectBtn.Activated:Connect(function()
-            local lp = game:GetService("Players").LocalPlayer
-            local backpack = lp:FindFirstChild("Backpack")
-            local character = lp.Character
-            
-            local foundToolName = ""
-            if backpack then
-                for _, item in ipairs(backpack:GetChildren()) do
-                    if item:IsA("Tool") then
-                        foundToolName = item.Name
-                        break
-                    end
-                end
-            end
-            if foundToolName == "" and character then
-                for _, item in ipairs(character:GetChildren()) do
-                    if item:IsA("Tool") then
-                        foundToolName = item.Name
-                        break
-                    end
-                end
-            end
-
-            if foundToolName ~= "" then
-                data.tool = foundToolName
-                ToolSelectBtn.Text = foundToolName
-                if _G.ReaperHubConfig.AutoSave then SaveConfig() end
-                -- Nếu đang bật nút, cập nhật lại màn hình
-                if _G.ReaperHubConfig.SkillButtonsActive and _G.ReaperHub_SaveConfig then
-                    RunRaw("https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/SkillButtons.lua")
-                end
-            else
-                ToolSelectBtn.Text = "No Tool!"
-                task.delay(1.5, function() ToolSelectBtn.Text = data.tool ~= "" and data.tool or "tool >" end)
-            end
-        end)
-
-        -- THÊM NÚT XÓA BUTTON (DELETE) BÊN CẠNH
+        -- Nút Xóa Slot
         local DeleteBtn = Instance.new("TextButton")
         DeleteBtn.Size = UDim2.new(0, 32, 0, 28)
         DeleteBtn.Position = UDim2.new(1, -38, 0.5, -14)
@@ -689,8 +679,74 @@ local function RefreshSkillMenuList()
         DeleteBtn.Font = Enum.Font.GothamBold
         DeleteBtn.TextSize = 12
         DeleteBtn.Text = "X"
-        DeleteBtn.Parent = Container
+        DeleteBtn.Parent = HeaderFrame
         Instance.new("UICorner", DeleteBtn).CornerRadius = UDim.new(0, 4)
+
+        -- Khung chứa danh sách Dropdown Sổ xuống
+        local DropHolder = Instance.new("ScrollingFrame")
+        DropHolder.Size = UDim2.new(0.96, 0, 0, 100)
+        DropHolder.Position = UDim2.new(0.02, 0, 0, 42)
+        DropHolder.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+        DropHolder.ScrollBarThickness = 4
+        DropHolder.Parent = Container
+        Instance.new("UICorner", DropHolder).CornerRadius = UDim.new(0, 4)
+
+        local DropLayout = Instance.new("UIListLayout", DropHolder)
+        DropLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        DropLayout.Padding = UDim.new(0, 3)
+
+        local isDropOpen = false
+
+        ToolSelectBtn.Activated:Connect(function()
+            isDropOpen = not isDropOpen
+            
+            if isDropOpen then
+                -- Xóa danh sách cũ trong dropdown
+                for _, child in ipairs(DropHolder:GetChildren()) do
+                    if child:IsA("TextButton") then child:Destroy() end
+                end
+
+                local tools = GetAvailableTools()
+                if #tools == 0 then
+                    local emptyLbl = Instance.new("TextLabel")
+                    emptyLbl.Size = UDim2.new(1, 0, 0, 30)
+                    emptyLbl.BackgroundTransparency = 1
+                    emptyLbl.Text = "No Tools in Backpack!"
+                    emptyLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+                    emptyLbl.Font = Enum.Font.GothamMedium
+                    emptyLbl.TextSize = 11
+                    emptyLbl.Parent = DropHolder
+                else
+                    for _, toolName in ipairs(tools) do
+                        local ItemBtn = Instance.new("TextButton")
+                        ItemBtn.Size = UDim2.new(1, -8, 0, 26)
+                        ItemBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+                        ItemBtn.Text = toolName
+                        ItemBtn.TextColor3 = (data.tool == toolName) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(170, 170, 170)
+                        ItemBtn.Font = Enum.Font.GothamMedium
+                        ItemBtn.TextSize = 11
+                        ItemBtn.Parent = DropHolder
+                        Instance.new("UICorner", ItemBtn).CornerRadius = UDim.new(0, 4)
+
+                        ItemBtn.Activated:Connect(function()
+                            data.tool = toolName
+                            ToolSelectBtn.Text = toolName
+                            isDropOpen = false
+                            Container:TweenSize(UDim2.new(1, 0, 0, 40), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+                            if _G.ReaperHubConfig.AutoSave then SaveConfig() end
+                            if _G.ReaperHubConfig.SkillButtonsActive then
+                                RunRaw("https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/SkillButtons.lua")
+                            end
+                        end)
+                    end
+                end
+
+                DropHolder.CanvasSize = UDim2.new(0, 0, 0, math.max(#tools, 1) * 29)
+                Container:TweenSize(UDim2.new(1, 0, 0, 150), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+            else
+                Container:TweenSize(UDim2.new(1, 0, 0, 40), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+            end
+        end)
 
         DeleteBtn.Activated:Connect(function()
             table.remove(listData, index)
@@ -703,7 +759,6 @@ local function RefreshSkillMenuList()
     end
 end
 
--- Sự kiện bấm +Add Button
 AddButtonText.Activated:Connect(function()
     local troll = currentTrollName
     _G.ReaperHubConfig.SkillButtons = _G.ReaperHubConfig.SkillButtons or {}
@@ -724,7 +779,6 @@ AddButtonText.Activated:Connect(function()
     end
 end)
 
--- Khởi tạo danh sách lần đầu
 RefreshSkillMenuList()
 
 -- TRADING PAGE
