@@ -15,7 +15,9 @@ local ConfigFile = "ReaperHub_Config.json"
 _G.ReaperHubConfig = _G.ReaperHubConfig or { 
     AutoSave = false, 
     Language = "English",
-    Toggles = {} 
+    Toggles = {},
+    SkillButtons = {},
+    SkillButtonsActive = false
 }
 
 local function SaveConfig()
@@ -34,6 +36,8 @@ local function LoadConfig()
                 _G.ReaperHubConfig.AutoSave = data.AutoSave or false
                 _G.ReaperHubConfig.Language = data.Language or "English"
                 _G.ReaperHubConfig.Toggles = data.Toggles or {}
+                _G.ReaperHubConfig.SkillButtons = data.SkillButtons or {}
+                _G.ReaperHubConfig.SkillButtonsActive = data.SkillButtonsActive or false
             end
         end
     end)
@@ -79,7 +83,7 @@ local function ApplyLanguage(lang)
 end
 
 -- ==========================================
--- KHUNG GUI CHÍNH (ĐEN TRẮNG CHUẨN)
+-- KHUNG GUI CHÍNH
 -- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ReaperHub_GUI"
@@ -160,7 +164,7 @@ local function CreateTab(nameKey, isFirst)
     local Page = Instance.new("ScrollingFrame")
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.BackgroundTransparency = 1
-    Page.CanvasSize = UDim2.new(0, 0, 0, 420)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 500)
     Page.ScrollBarThickness = 6
     Page.Visible = isFirst
     Page.Parent = PagesContainer
@@ -173,7 +177,6 @@ local function CreateTab(nameKey, isFirst)
     return Page
 end
 
--- THỨ TỰ CÁC TAB (ĐÃ THÊM FARM Ở SAU PVP)
 local MainPage = CreateTab("Main", true)
 local VisualPage = CreateTab("visual", false)
 local CilentPage = CreateTab("Cilent", false)
@@ -264,7 +267,14 @@ local function AddBtn(parentContainer, btnNameKey, rawUrl)
     Knob.Parent = SwitchBtn
     Instance.new("UICorner", Knob).CornerRadius = UDim.new(1, 0)
 
-    local isOn = (btnNameKey == "Save config") and _G.ReaperHubConfig.AutoSave or (_G.ReaperHubConfig.Toggles[btnNameKey] or false)
+    local isOn = false
+    if btnNameKey == "Save config" then
+        isOn = _G.ReaperHubConfig.AutoSave
+    elseif btnNameKey == "Enable Buttons" then
+        isOn = _G.ReaperHubConfig.SkillButtonsActive
+    else
+        isOn = _G.ReaperHubConfig.Toggles[btnNameKey] or false
+    end
 
     local function updateVisual(state)
         SwitchBtn.BackgroundColor3 = state and Color3.fromRGB(200, 200, 200) or Color3.fromRGB(50, 50, 50)
@@ -273,7 +283,7 @@ local function AddBtn(parentContainer, btnNameKey, rawUrl)
     end
 
     updateVisual(isOn)
-    if isOn and btnNameKey ~= "Save config" then RunRaw(rawUrl) end
+    if isOn and btnNameKey ~= "Save config" and rawUrl ~= "" then RunRaw(rawUrl) end
 
     SwitchBtn.Activated:Connect(function()
         isOn = not isOn
@@ -282,6 +292,10 @@ local function AddBtn(parentContainer, btnNameKey, rawUrl)
         if btnNameKey == "Save config" then
             _G.ReaperHubConfig.AutoSave = isOn
             SaveConfig()
+        elseif btnNameKey == "Enable Buttons" then
+            _G.ReaperHubConfig.SkillButtonsActive = isOn
+            if _G.ReaperHubConfig.AutoSave then SaveConfig() end
+            RunRaw(rawUrl)
         else
             _G.ReaperHubConfig.Toggles[btnNameKey] = isOn
             if _G.ReaperHubConfig.AutoSave then SaveConfig() end
@@ -492,9 +506,154 @@ AddSectionHeader(CilentPage, "Utilities")
 AddBtn(CilentPage, "Anti-AFK", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AntiAFK.lua")
 AddClickBtn(CilentPage, "Server Hop", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/ServerHop.lua")
 
--- FARM PAGE (TAB MỚI THÊM)
+-- FARM PAGE
 AddSectionHeader(FarmPage, "Chest Farm")
 AddBtn(FarmPage, "Auto Chest", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/AutoChest.lua")
+
+-- ==========================================
+-- PVP PAGE (CUSTOM SKILL BUTTONS MANAGER)
+-- ==========================================
+AddSectionHeader(PvPPage, "button skill")
+
+-- Nút Bật/Tắt hệ thống Custom Skill Buttons
+AddBtn(PvPPage, "Enable Buttons", "https://raw.githubusercontent.com/ReaperHub1306/ReaperHub_TM/refs/heads/main/SkillButtons.lua")
+
+-- Hiển thị tên nhân vật Troll hiện tại
+local currentTrollName = "???"
+pcall(function() currentTrollName = game:GetService("Players").LocalPlayer.trollge_data.troll_stand.Value end)
+AddSectionHeader(PvPPage, "Troll_User: " .. currentTrollName)
+
+-- Nút Bật/Tắt chế độ kéo thả Move Button
+local moveBtnContainer = Instance.new("Frame")
+moveBtnContainer.Size = UDim2.new(1, 0, 0, 36)
+moveBtnContainer.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+moveBtnContainer.LayoutOrder = GetNextOrder()
+moveBtnContainer.Parent = PvPPage
+Instance.new("UICorner", moveBtnContainer).CornerRadius = UDim.new(0, 4)
+Instance.new("UIStroke", moveBtnContainer).Color = Color3.fromRGB(60, 60, 60)
+
+local moveBtnText = Instance.new("TextLabel")
+moveBtnText.Size = UDim2.new(1, -60, 1, 0)
+moveBtnText.Position = UDim2.new(0, 10, 0, 0)
+moveBtnText.BackgroundTransparency = 1
+moveBtnText.Text = "Move Button"
+moveBtnText.TextColor3 = Color3.fromRGB(240, 240, 240)
+moveBtnText.Font = Enum.Font.GothamMedium
+moveBtnText.TextSize = 13
+moveBtnText.TextXAlignment = Enum.TextXAlignment.Left
+moveBtnText.Parent = moveBtnContainer
+
+local moveSwitch = Instance.new("TextButton")
+moveSwitch.Size = UDim2.new(0, 44, 0, 22)
+moveSwitch.Position = UDim2.new(1, -54, 0.5, -11)
+moveSwitch.BackgroundColor3 = _G.ReaperHub_MoveMode and Color3.fromRGB(200, 200, 200) or Color3.fromRGB(50, 50, 50)
+moveSwitch.Text = ""
+moveSwitch.Parent = moveBtnContainer
+Instance.new("UICorner", moveSwitch).CornerRadius = UDim.new(1, 0)
+
+local moveKnob = Instance.new("Frame")
+moveKnob.Size = UDim2.new(0, 18, 0, 18)
+moveKnob.BackgroundColor3 = _G.ReaperHub_MoveMode and Color3.fromRGB(20, 20, 20) or Color3.fromRGB(220, 220, 220)
+moveKnob.Position = _G.ReaperHub_MoveMode and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+moveKnob.Parent = moveSwitch
+Instance.new("UICorner", moveKnob).CornerRadius = UDim.new(1, 0)
+
+moveSwitch.Activated:Connect(function()
+    _G.ReaperHub_MoveMode = not _G.ReaperHub_MoveMode
+    moveSwitch.BackgroundColor3 = _G.ReaperHub_MoveMode and Color3.fromRGB(200, 200, 200) or Color3.fromRGB(50, 50, 50)
+    moveKnob.BackgroundColor3 = _G.ReaperHub_MoveMode and Color3.fromRGB(20, 20, 20) or Color3.fromRGB(220, 220, 220)
+    moveKnob.Position = _G.ReaperHub_MoveMode and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+end)
+
+-- Hàm tạo hàng cấu hình cho từng Button Skill và chọn Tool trong Balo
+local function CreateButtonSettingItem(parent, index)
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 40)
+    Container.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+    Container.LayoutOrder = GetNextOrder()
+    Container.Parent = parent
+    Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 4)
+
+    local NameLbl = Instance.new("TextLabel")
+    NameLbl.Size = UDim2.new(0.35, 0, 1, 0)
+    NameLbl.Position = UDim2.new(0, 10, 0, 0)
+    NameLbl.BackgroundTransparency = 1
+    NameLbl.Text = "button " .. index
+    NameLbl.TextColor3 = Color3.fromRGB(220, 220, 220)
+    NameLbl.Font = Enum.Font.GothamMedium
+    NameLbl.TextSize = 13
+    NameLbl.TextXAlignment = Enum.TextXAlignment.Left
+    NameLbl.Parent = Container
+
+    -- Lấy tên tool đã lưu trước đó nếu có
+    local troll = currentTrollName
+    local savedToolName = "tool >"
+    pcall(function()
+        if _G.ReaperHubConfig.SkillButtons[troll] and _G.ReaperHubConfig.SkillButtons[troll][index] then
+            local tName = _G.ReaperHubConfig.SkillButtons[troll][index].tool
+            if tName and tName ~= "" then savedToolName = tName end
+        end
+    end)
+
+    local ToolSelectBtn = Instance.new("TextButton")
+    ToolSelectBtn.Size = UDim2.new(0.55, -10, 0, 26)
+    ToolSelectBtn.Position = UDim2.new(0.4, 0, 0.5, -13)
+    ToolSelectBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    ToolSelectBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    ToolSelectBtn.Font = Enum.Font.GothamMedium
+    ToolSelectBtn.TextSize = 11
+    ToolSelectBtn.Text = savedToolName
+    ToolSelectBtn.Parent = Container
+    Instance.new("UICorner", ToolSelectBtn).CornerRadius = UDim.new(0, 4)
+
+    -- Bấm để quét item trong Balo gán vào phím
+    ToolSelectBtn.Activated:Connect(function()
+        local lp = game:GetService("Players").LocalPlayer
+        local backpack = lp:FindFirstChild("Backpack")
+        local character = lp.Character
+        
+        local foundToolName = ""
+        if backpack then
+            for _, item in ipairs(backpack:GetChildren()) do
+                if item:IsA("Tool") then
+                    foundToolName = item.Name
+                    break
+                end
+            end
+        end
+        if foundToolName == "" and character then
+            for _, item in ipairs(character:GetChildren()) do
+                if item:IsA("Tool") then
+                    foundToolName = item.Name
+                    break
+                end
+            end
+        end
+
+        if foundToolName ~= "" then
+            _G.ReaperHubConfig.SkillButtons = _G.ReaperHubConfig.SkillButtons or {}
+            _G.ReaperHubConfig.SkillButtons[troll] = _G.ReaperHubConfig.SkillButtons[troll] or {
+                {name = "S1", tool = "", pos = {x = 0.85, y = 0.3}},
+                {name = "S2", tool = "", pos = {x = 0.85, y = 0.45}}
+            }
+            
+            if not _G.ReaperHubConfig.SkillButtons[troll][index] then
+                table.insert(_G.ReaperHubConfig.SkillButtons[troll], {name = "S" .. index, tool = "", pos = {x = 0.85, y = 0.3 + (index * 0.15)}})
+            end
+
+            _G.ReaperHubConfig.SkillButtons[troll][index].tool = foundToolName
+            ToolSelectBtn.Text = foundToolName
+            if _G.ReaperHubConfig.AutoSave then SaveConfig() end
+        else
+            ToolSelectBtn.Text = "No Tool!"
+            task.delay(1.5, function() ToolSelectBtn.Text = "tool >" end)
+        end
+    end)
+end
+
+-- Tạo sẵn 2 slot nút tùy chỉnh mẫu trong Tab PvP
+CreateButtonSettingItem(PvPPage, 1)
+CreateButtonSettingItem(PvPPage, 2)
 
 -- TRADING PAGE
 AddSectionHeader(TradingPage, "Tools")
