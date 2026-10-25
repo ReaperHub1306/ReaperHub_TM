@@ -6,130 +6,112 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Xóa UI cũ nếu bật lại
+-- Xóa ScreenGui nút cũ nếu đã tồn tại
 if CoreGui:FindFirstChild("ReaperHub_SkillButtons") then
     CoreGui.ReaperHub_SkillButtons:Destroy()
 end
+
+-- Tắt hệ thống nút nếu biến Toggle là false
+if not _G.ReaperHubConfig or not _G.ReaperHubConfig.SkillButtonsActive then
+    print("[ReaperHub] Skill Buttons: OFF")
+    return
+end
+
+print("[ReaperHub] Skill Buttons: ON")
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ReaperHub_SkillButtons"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
--- Lấy tên Troll hiện tại để phân tách config riêng biệt
+-- Lấy tên Troll hiện tại của người chơi
 local function GetCurrentTroll()
-    local pcallSuccess, trollName = pcall(function()
+    local success, trollName = pcall(function()
         return LocalPlayer.trollge_data.troll_stand.Value
     end)
-    if pcallSuccess and trollName and trollName ~= "" then
+    if success and trollName and trollName ~= "" then
         return tostring(trollName)
     end
     return "Default"
 end
 
--- Khởi tạo cấu hình nút cho từng con Troll trong _G.ReaperHubConfig
+local currentTroll = GetCurrentTroll()
+
+-- Đảm bảo bảng config SkillButtons được khởi tạo chuẩn
 _G.ReaperHubConfig.SkillButtons = _G.ReaperHubConfig.SkillButtons or {}
+_G.ReaperHubConfig.SkillButtons[currentTroll] = _G.ReaperHubConfig.SkillButtons[currentTroll] or {
+    {name = "S1", tool = "", pos = {x = 0.8, y = 0.4}},
+    {name = "S2", tool = "", pos = {x = 0.8, y = 0.55}}
+}
 
-local function GetCurrentTrollButtons()
-    local troll = GetCurrentTroll()
-    _G.ReaperHubConfig.SkillButtons[troll] = _G.ReaperHubConfig.SkillButtons[troll] or {
-        {name = "Skill 1", tool = "", pos = {x = 0.1, y = 0.4}},
-        {name = "Skill 2", tool = "", pos = {x = 0.1, y = 0.55}}
-    }
-    return _G.ReaperHubConfig.SkillButtons[troll]
-end
+local trollConfig = _G.ReaperHubConfig.SkillButtons[currentTroll]
 
--- Biến trạng thái chế độ di chuyển nút (Move Button)
-_G.ReaperHub_MoveMode = _G.ReaperHub_MoveMode or false
+-- VẼ CÁC NÚT TRÒN LÊN MÀN HÌNH
+for index, data in ipairs(trollConfig) do
+    local CircleBtn = Instance.new("TextButton")
+    CircleBtn.Name = "SkillBtn_" .. index
+    CircleBtn.Size = UDim2.new(0, 52, 0, 52)
+    CircleBtn.Position = UDim2.new(data.pos.x or 0.8, 0, data.pos.y or (0.3 + index * 0.15), 0)
+    CircleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    CircleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CircleBtn.Text = (data.tool and data.tool ~= "") and string.sub(data.tool, 1, 4) or ("S" .. index)
+    CircleBtn.Font = Enum.Font.GothamBold
+    CircleBtn.TextSize = 11
+    CircleBtn.Active = true
+    CircleBtn.Parent = ScreenGui
 
-local activeButtons = {}
+    Instance.new("UICorner", CircleBtn).CornerRadius = UDim.new(1, 0)
+    
+    local Stroke = Instance.new("UIStroke", CircleBtn)
+    Stroke.Color = Color3.fromRGB(255, 255, 255)
+    Stroke.Thickness = 1.5
 
-local function RefreshButtons()
-    -- Xóa các nút hiển thị cũ trên màn hình
-    for _, btnObj in ipairs(activeButtons) do
-        if btnObj then btnObj:Destroy() end
-    end
-    activeButtons = {}
+    -- Kéo thả nút khi bật Move Button
+    local dragging = false
+    local dragStart, startPos
 
-    local trollConfig = GetCurrentTrollButtons()
+    CircleBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if _G.ReaperHub_MoveMode then
+                dragging = true
+                dragStart = input.Position
+                startPos = CircleBtn.Position
+            end
+        end
+    end)
 
-    for index, data in ipairs(trollConfig) do
-        -- Tạo nút tròn trên màn hình
-        local CircleBtn = Instance.new("TextButton")
-        CircleBtn.Size = UDim2.new(0, 55, 0, 55)
-        CircleBtn.Position = UDim2.new(data.pos.x, 0, data.pos.y, 0)
-        CircleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        CircleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        CircleBtn.Text = data.name
-        CircleBtn.Font = Enum.Font.GothamBold
-        CircleBtn.TextSize = 12
-        CircleBtn.Active = true
-        CircleBtn.Draggable = false -- Tự xử lý kéo thả mượt mà trên Mobile
-        CircleBtn.Parent = ScreenGui
+    CircleBtn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
 
-        Instance.new("UICorner", CircleBtn).CornerRadius = UDim.new(1, 0)
-        local Stroke = Instance.new("UIStroke", CircleBtn)
-        Stroke.Color = Color3.fromRGB(255, 255, 255)
-        Stroke.Thickness = 1.5
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and _G.ReaperHub_MoveMode and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+            local delta = input.Position - dragStart
+            local parentSize = ScreenGui.AbsoluteSize
+            local newX = math.clamp((startPos.X.Scale * parentSize.X + startPos.X.Offset + delta.X) / parentSize.X, 0, 0.85)
+            local newY = math.clamp((startPos.Y.Scale * parentSize.Y + startPos.Y.Offset + delta.Y) / parentSize.Y, 0, 0.85)
+            
+            CircleBtn.Position = UDim2.new(newX, 0, newY, 0)
+            data.pos.x = newX
+            data.pos.y = newY
+        end
+    end)
 
-        -- Xử lý Kéo thả khi bật Move Mode
-        local dragging = false
-        local dragInput, dragStart, startPos
-
-        CircleBtn.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                if _G.ReaperHub_MoveMode then
-                    dragging = true
-                    dragStart = input.Position
-                    startPos = CircleBtn.Position
-                    input.Changed:Connect(function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            dragging = false
-                        end
-                    end)
+    -- Khi bấm nút -> Cầm Tool tương ứng
+    CircleBtn.Activated:Connect(function()
+        if _G.ReaperHub_MoveMode then return end
+        if data.tool and data.tool ~= "" then
+            local character = LocalPlayer.Character
+            local backpack = LocalPlayer:FindFirstChild("Backpack")
+            if character and backpack then
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
+                local tool = backpack:FindFirstChild(data.tool) or character:FindFirstChild(data.tool)
+                if tool and humanoid then
+                    humanoid:EquipTool(tool)
                 end
             end
-        end)
-
-        CircleBtn.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
-                dragInput = input
-            end
-        end)
-
-        UserInputService.InputChanged:Connect(function(input)
-            if input == dragInput and dragging and _G.ReaperHub_MoveMode then
-                local delta = input.Position - dragStart
-                local parentSize = ScreenGui.AbsoluteSize
-                local newX = math.clamp((startPos.X.Scale * parentSize.X + startPos.X.Offset + delta.X) / parentSize.X, 0, 0.9)
-                local newY = math.clamp((startPos.Y.Scale * parentSize.Y + startPos.Y.Offset + delta.Y) / parentSize.Y, 0, 0.9)
-                
-                CircleBtn.Position = UDim2.new(newX, 0, newY, 0)
-                data.pos.x = newX
-                data.pos.y = newY
-                if _G.ReaperHubConfig.AutoSave and SaveConfig then SaveConfig() end
-            end
-        end)
-
-        -- Xử lý bấm nút để dùng Skill (Equip Tool từ Backpack)
-        CircleBtn.Activated:Connect(function()
-            if _G.ReaperHub_MoveMode then return end
-            if data.tool and data.tool ~= "" then
-                local character = LocalPlayer.Character
-                local backpack = LocalPlayer:FindFirstChild("Backpack")
-                if character and backpack then
-                    local humanoid = character:FindFirstChildOfClass("Humanoid")
-                    local tool = backpack:FindFirstChild(data.tool) or character:FindFirstChild(data.tool)
-                    if tool and humanoid then
-                        humanoid:EquipTool(tool)
-                    end
-                end
-            end
-        end)
-
-        table.insert(activeButtons, CircleBtn)
-    end
+        end
+    end)
 end
-
-RefreshButtons()
-print("[ReaperHub] Custom Skill Buttons loaded for Troll: " .. GetCurrentTroll())
