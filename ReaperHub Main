@@ -518,7 +518,7 @@ AddBtn(PvPPage, "Enable Buttons", "https://raw.githubusercontent.com/ReaperHub13
 
 local currentTrollName = "???"
 pcall(function() currentTrollName = game:GetService("Players").LocalPlayer.trollge_data.troll_stand.Value end)
-AddSectionHeader(PvPPage, "Troll_User: " .. currentTrollName)
+AddSectionHeader(PvPPage, "Troll_User: " + currentTrollName) -- Đã chỉnh sửa tiêu đề chuẩn
 
 -- Nút Bật/Tắt Move Button
 local moveBtnContainer = Instance.new("Frame")
@@ -562,7 +562,45 @@ moveSwitch.Activated:Connect(function()
     moveKnob.Position = _G.ReaperHub_MoveMode and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
 end)
 
--- Hàm tạo hàng quản lý nút skill và gán tool từ balo
+-- Nút +Add Button để thêm slot kỹ năng tùy chỉnh mới
+local AddButtonContainer = Instance.new("Frame")
+AddButtonContainer.Size = UDim2.new(1, 0, 0, 36)
+AddButtonContainer.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+AddButtonContainer.LayoutOrder = GetNextOrder()
+AddButtonContainer.Parent = PvPPage
+Instance.new("UICorner", AddButtonContainer).CornerRadius = UDim.new(0, 4)
+Instance.new("UIStroke", AddButtonContainer).Color = Color3.fromRGB(60, 60, 60)
+
+local AddButtonText = Instance.new("TextButton")
+AddButtonText.Size = UDim2.new(1, 0, 1, 0)
+AddButtonText.BackgroundTransparency = 1
+AddButtonText.Text = "+Add Button"
+AddButtonText.TextColor3 = Color3.fromRGB(240, 240, 240)
+AddButtonText.Font = Enum.Font.GothamMedium
+AddButtonText.TextSize = 13
+AddButtonText.Parent = AddButtonContainer
+
+-- Hành động khi bấm +Add Button: Thêm một nút mới vào danh sách cấu hình của Troll hiện tại
+AddButtonText.Activated:Connect(function()
+    local troll = currentTrollName
+    _G.ReaperHubConfig.SkillButtons = _G.ReaperHubConfig.SkillButtons or {}
+    _G.ReaperHubConfig.SkillButtons[troll] = _G.ReaperHubConfig.SkillButtons[troll] or {}
+    
+    local newIndex = #_G.ReaperHubConfig.SkillButtons[troll] + 1
+    table.insert(_G.ReaperHubConfig.SkillButtons[troll], {
+        name = "S" .. newIndex,
+        tool = "",
+        pos = {x = 0.8, y = 0.2 + (newIndex * 0.12)}
+    })
+    
+    if _G.ReaperHubConfig.AutoSave then SaveConfig() end
+    
+    -- Thông báo nhỏ hoặc làm mới giao diện nếu cần
+    AddButtonText.Text = "Added Button " .. newIndex .. "!"
+    task.delay(1.5, function() AddButtonText.Text = "+Add Button" end)
+end)
+
+-- Hàm tạo hàng quản lý nút skill (button 1, button 2,...) và gán tool từ balo
 local function CreateButtonSettingItem(parent, index)
     local Container = Instance.new("Frame")
     Container.Size = UDim2.new(1, 0, 0, 40)
