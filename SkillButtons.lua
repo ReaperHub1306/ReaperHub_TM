@@ -6,25 +6,22 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Xóa ScreenGui nút cũ nếu đã tồn tại
+-- Xóa UI nút cũ nếu đã tồn tại
 if CoreGui:FindFirstChild("ReaperHub_SkillButtons") then
     CoreGui.ReaperHub_SkillButtons:Destroy()
 end
 
--- Tắt hệ thống nút nếu biến Toggle là false
+-- Nếu chưa bật hệ thống nút thì dừng
 if not _G.ReaperHubConfig or not _G.ReaperHubConfig.SkillButtonsActive then
-    print("[ReaperHub] Skill Buttons: OFF")
     return
 end
-
-print("[ReaperHub] Skill Buttons: ON")
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ReaperHub_SkillButtons"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
--- Lấy tên Troll hiện tại của người chơi
+-- Lấy tên Troll hiện tại để phân tách dữ liệu riêng biệt
 local function GetCurrentTroll()
     local success, trollName = pcall(function()
         return LocalPlayer.trollge_data.troll_stand.Value
@@ -37,7 +34,6 @@ end
 
 local currentTroll = GetCurrentTroll()
 
--- Đảm bảo bảng config SkillButtons được khởi tạo chuẩn
 _G.ReaperHubConfig.SkillButtons = _G.ReaperHubConfig.SkillButtons or {}
 _G.ReaperHubConfig.SkillButtons[currentTroll] = _G.ReaperHubConfig.SkillButtons[currentTroll] or {
     {name = "S1", tool = "", pos = {x = 0.8, y = 0.4}},
@@ -46,7 +42,7 @@ _G.ReaperHubConfig.SkillButtons[currentTroll] = _G.ReaperHubConfig.SkillButtons[
 
 local trollConfig = _G.ReaperHubConfig.SkillButtons[currentTroll]
 
--- VẼ CÁC NÚT TRÒN LÊN MÀN HÌNH
+-- Vẽ các nút tròn lên màn hình
 for index, data in ipairs(trollConfig) do
     local CircleBtn = Instance.new("TextButton")
     CircleBtn.Name = "SkillBtn_" .. index
@@ -66,7 +62,7 @@ for index, data in ipairs(trollConfig) do
     Stroke.Color = Color3.fromRGB(255, 255, 255)
     Stroke.Thickness = 1.5
 
-    -- Kéo thả nút khi bật Move Button
+    -- Kéo thả nút khi bật chế độ Move Button
     local dragging = false
     local dragStart, startPos
 
@@ -99,7 +95,7 @@ for index, data in ipairs(trollConfig) do
         end
     end)
 
-    -- Khi bấm nút -> Cầm Tool tương ứng
+    -- CƠ CHẾ DÙNG SKILL: Trang bị tool lên tay VÀ kích hoạt hành động (Activate) ngay lập tức
     CircleBtn.Activated:Connect(function()
         if _G.ReaperHub_MoveMode then return end
         if data.tool and data.tool ~= "" then
@@ -107,9 +103,20 @@ for index, data in ipairs(trollConfig) do
             local backpack = LocalPlayer:FindFirstChild("Backpack")
             if character and backpack then
                 local humanoid = character:FindFirstChildOfClass("Humanoid")
-                local tool = backpack:FindFirstChild(data.tool) or character:FindFirstChild(data.tool)
+                -- Kiểm tra xem tool đang ở trong Balo hay đang cầm trên tay
+                local tool = character:FindFirstChild(data.tool) or backpack:FindFirstChild(data.tool)
+                
                 if tool and humanoid then
-                    humanoid:EquipTool(tool)
+                    if tool.Parent == backpack then
+                        humanoid:EquipTool(tool)
+                        task.wait(0.05) -- Đợi tích tắc để trang bị xong
+                    end
+                    -- Kích hoạt chiêu thức trực tiếp (Giống như click chuột trái/chạm để tung skill)
+                    if tool:IsA("Tool") then
+                        pcall(function()
+                            tool:Activate()
+                        end)
+                    end
                 end
             end
         end
